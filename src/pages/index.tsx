@@ -78,7 +78,7 @@ export default function Home() {
                 </Typography>
                 <Typography
                   variant="h6"
-                  color="text.secondary"
+                  color="common.white"
                   sx={{ mt: 2, maxWidth: 560, fontWeight: 400 }}
                 >
                   A safe, confidential way for students, families, staff, and community
@@ -327,7 +327,7 @@ export default function Home() {
                   <Typography variant="h4">
                     Together, we can build safer schools.
                   </Typography>
-                  <Typography color="text.secondary" sx={{ mt: 1 }}>
+                  <Typography color="common.white" sx={{ mt: 1 }}>
                     Recognize warning signs early, report concerns responsibly, and help
                     every student feel safe.
                   </Typography>

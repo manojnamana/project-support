@@ -63,7 +63,7 @@ export default function Navbar() {
                 component={Link}
                 href={link.href}
                 sx={{
-                  color: isActive(link.href) ? "primary.main" : "text.secondary",
+                  color: isActive(link.href) ? "primary.dark" : "text.secondary",
                   fontWeight: isActive(link.href) ? 700 : 600,
                   position: "relative",
                   "&::after": {
@@ -74,7 +74,7 @@ export default function Navbar() {
                     bottom: 6,
                     height: 2,
                     borderRadius: 2,
-                    backgroundColor: "primary.main",
+                    backgroundColor: "primary.dark",
                     transform: isActive(link.href) ? "scaleX(1)" : "scaleX(0)",
                     transformOrigin: "center",
                     transition: "transform .25s cubic-bezier(0.16,1,0.3,1)",

@@ -2,14 +2,14 @@ import { createTheme, alpha } from "@mui/material/styles";
 
 // Calm, neutral palette suited to a government school-safety context.
 const BRAND = {
-  primary: "#C9B59C",
-  primaryDark: "#C9B59C",
-  secondary: "#D9CFC7",
+  primary: "#68B3D3",
+  primaryDark: "#99D6F0",
+  secondary: "#A1D8FF",
   ink: "#0F172A",
   muted: "#64748B",
   surface: "#F9F8F6",
   paper: "#FFFFFF",
-  border: "#EFE9E3",
+  border: "#D9CFC7",
 };
 
 const theme = createTheme({

@@ -39,7 +39,7 @@ export default function PageHeader({ eyebrow, title, subtitle, action }: PageHea
                     letterSpacing: "0.14em",
                     fontWeight: 700,
                     fontSize: "0.75rem",
-                    color: "text.secondary",
+                    color: "common.white",
                     mb: 1,
                   }}
                 >
@@ -52,7 +52,7 @@ export default function PageHeader({ eyebrow, title, subtitle, action }: PageHea
               {subtitle && (
                 <Typography
                   variant="body1"
-                  color="text.secondary"
+                  color="common.white"
                   sx={{ mt: 1.5, maxWidth: 640 }}
                 >
                   {subtitle}
