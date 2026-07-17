@@ -1,48 +1,40 @@
-# Project SUPPORT — Anonymous School Safety Reporting
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
 
-A clean, multi-page demo UI for **Project SUPPORT** (Supporting Under-served Populations
-through Partnership, Opportunities, Resources & Technology) — a school violence prevention
-initiative. It provides a safe, confidential way for students, families, staff, and
-community members to report safety concerns, plus an administrative dashboard for
-authorized personnel.
+## Getting Started
 
-Built with **Next.js (Pages Router)**, **TypeScript**, and **Material UI (MUI)** — no
-Tailwind. Styling uses a centralized MUI theme with smooth transitions throughout.
-
-## Features
-
-- **Home** (`/`) — landing page with anonymous / contact reporting entry points.
-- **Report a Concern** (`/report`) — a 6-step guided form:
-  1. Select school/location · 2. Type of concern · 3. Urgency · 4. Details ·
-  5. Evidence upload · 6. Contact info (with "remain anonymous").
-- **Success** (`/success`) — generates a case number & PIN with copy-to-clipboard.
-- **Check Status** (`/status`) — anonymous two-way follow-up using case number + PIN.
-- **How It Works** (`/how-it-works`) — urgency levels, automated routing, workflow.
-- **Admin Dashboard** (`/dashboard`) — login gate, stats, filterable reports queue,
-  and a case detail drawer with timeline.
-
-### Reusable components
-
-`Layout`, `Navbar`, `Footer`, `Logo`, `PageHeader`, `Reveal` (scroll animation),
-`StatCard`, `SeverityChip`, `StatusChip`, `EmergencyBanner`, and two dropdown
-components that **show only 4 options at a time and scroll the rest**:
-`ScrollableSelect` and `ScrollableAutocomplete`.
-
-## Getting started
+First, run the development server:
 
 ```bash
-npm install
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Demo credentials
+You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
 
-- **Check status** — case `PSV-2026-00458`, PIN `3049`.
-- **Admin dashboard** — any email/password grants access (demo mode).
+[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
 
-## Notes
+The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
 
-All data in `src/data/index.ts` is fictional and for demonstration only. Report
-submissions are not persisted or sent anywhere.
+This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
