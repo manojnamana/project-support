@@ -49,10 +49,10 @@ export default function HowItWorks() {
               <Reveal delay={i * 80}>
                 <Card
                   sx={{
-                    height: "100%",
+                    minHeight: "210px",
+                    maxHeight: "210px",
                     borderTop: "4px solid",
                     borderTopColor: `${u.color}.main`,
-                    "&:hover": { transform: "translateY(-4px)" },
                   }}
                 >
                   <CardContent>
@@ -158,10 +158,9 @@ export default function HowItWorks() {
                             borderRadius: "50%",
                             display: "grid",
                             placeItems: "center",
-                            color: "#fff",
+                            color: "text.primary",
                             fontWeight: 800,
-                            background: (t) =>
-                              `linear-gradient(135deg, ${t.palette.primary.main}, ${t.palette.secondary.main})`,
+                            bgcolor: "primary.main",
                           }}
                         >
                           {i + 1}
@@ -189,17 +188,16 @@ export default function HowItWorks() {
           <Reveal>
             <Card
               sx={{
-                color: "#fff",
-                border: "none",
-                background: (t) =>
-                  `linear-gradient(120deg, ${t.palette.primary.dark}, ${t.palette.secondary.dark})`,
+                color: "text.primary",
+                bgcolor: "primary.main",
+                borderColor: "divider",
               }}
             >
               <CardContent sx={{ p: { xs: 3, md: 4 } }}>
                 <Grid container spacing={3} alignItems="center">
                   <Grid size={{ xs: 12, md: 7 }}>
                     <Typography variant="h5">Who reviews reports?</Typography>
-                    <Typography sx={{ mt: 1, opacity: 0.9 }}>
+                    <Typography color="text.secondary" sx={{ mt: 1 }}>
                       Only authorized personnel can access reports through the secure
                       administrative dashboard.
                     </Typography>
@@ -208,7 +206,7 @@ export default function HowItWorks() {
                         <Chip
                           key={role}
                           label={role}
-                          sx={{ bgcolor: "rgba(255,255,255,0.16)", color: "#fff" }}
+                          sx={{ bgcolor: "secondary.main", color: "text.primary" }}
                         />
                       ))}
                     </Stack>
@@ -221,7 +219,11 @@ export default function HowItWorks() {
                       fullWidth
                       size="large"
                       endIcon={<ArrowForwardRoundedIcon />}
-                      sx={{ bgcolor: "#fff", color: "primary.main", "&:hover": { bgcolor: "#F1F5FF" } }}
+                      sx={{
+                        bgcolor: "background.paper",
+                        color: "text.primary",
+                        "&:hover": { bgcolor: "secondary.main" },
+                      }}
                     >
                       Report a concern
                     </Button>

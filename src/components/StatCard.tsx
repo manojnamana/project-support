@@ -14,9 +14,7 @@ export default function StatCard({ icon, value, label, color = "primary.main" }:
       sx={{
         height: "100%",
         "&:hover": {
-          transform: "translateY(-4px)",
-          boxShadow: "0 18px 40px -24px rgba(15,23,42,0.4)",
-          borderColor: "transparent",
+          borderColor: "primary.main",
         },
       }}
     >

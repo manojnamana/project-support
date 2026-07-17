@@ -81,9 +81,8 @@ function LoginGate({ onLogin }: { onLogin: () => void }) {
                 borderRadius: 2,
                 display: "grid",
                 placeItems: "center",
-                color: "#fff",
-                background: (t) =>
-                  `linear-gradient(135deg, ${t.palette.primary.main}, ${t.palette.secondary.main})`,
+                color: "text.primary",
+                bgcolor: "primary.main",
               }}
             >
               <LockRoundedIcon />
@@ -175,7 +174,7 @@ export default function DashboardPage() {
             variant="outlined"
             startIcon={<LogoutRoundedIcon />}
             onClick={() => setAuthed(false)}
-            sx={{ color: "#fff", borderColor: "rgba(255,255,255,0.6)" }}
+            sx={{ color: "text.primary", borderColor: "text.primary" }}
           >
             Sign out
           </Button>

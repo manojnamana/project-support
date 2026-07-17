@@ -1,18 +1,17 @@
 import * as React from "react";
-import { Alert, Box, Button, Stack, Typography } from "@mui/material";
+import {  Box, Button, Paper, Stack, Typography } from "@mui/material";
 import LocalPhoneRoundedIcon from "@mui/icons-material/LocalPhoneRounded";
 
 export default function EmergencyBanner({ dense = false }: { dense?: boolean }) {
   return (
-    <Alert
-      severity="error"
-      icon={false}
+    <Paper
+      variant="outlined"
       sx={{
         borderRadius: 3,
         border: "1px solid",
         borderColor: "error.light",
-        bgcolor: (t) => `${t.palette.error.main}0F`,
-        py: dense ? 1 : 1.5,
+        bgcolor: "error.main",
+        p: 1.5,
       }}
     >
       <Stack
@@ -23,25 +22,25 @@ export default function EmergencyBanner({ dense = false }: { dense?: boolean }) 
         sx={{ width: "100%" }}
       >
         <Box>
-          <Typography sx={{ fontWeight: 700, color: "error.main" }}>
+          <Typography sx={{ fontWeight: 700, color: "common.white" }}>
             Is this an emergency happening right now?
           </Typography>
           {!dense && (
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="common.white">
               If someone is in immediate danger, do not use this form.
             </Typography>
           )}
         </Box>
         <Button
           href="tel:911"
-          color="error"
+          color="inherit"
           variant="contained"
           startIcon={<LocalPhoneRoundedIcon />}
-          sx={{ flexShrink: 0 }}
+          sx={{ flexShrink: 0, backgroundColor: "common.white",color: "error.main" }}
         >
           Call 911 Immediately
         </Button>
       </Stack>
-    </Alert>
+    </Paper>
   );
 }

@@ -12,7 +12,7 @@ export default function Footer() {
         mt: 10,
         pt: 6,
         pb: 4,
-        bgcolor: "#0F172A",
+        bgcolor: "text.primary",
         color: "rgba(255,255,255,0.8)",
       }}
     >

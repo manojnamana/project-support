@@ -52,11 +52,12 @@ export default function Home() {
         sx={{
           position: "relative",
           overflow: "hidden",
-          color: "#fff",
+          color: "text.primary",
           pt: { xs: 8, md: 12 },
           pb: { xs: 10, md: 14 },
-          background: (t) =>
-            `radial-gradient(1000px 500px at 85% -10%, ${t.palette.secondary.main}66, transparent), radial-gradient(900px 500px at 0% 20%, ${t.palette.primary.light}44, transparent), linear-gradient(135deg, ${t.palette.primary.dark}, ${t.palette.primary.main})`,
+          bgcolor: "primary.main",
+          borderBottom: "1px solid",
+          borderColor: "divider",
         }}
       >
         <Container maxWidth="lg">
@@ -66,11 +67,10 @@ export default function Home() {
                 <Chip
                   label="See Something. Say Something."
                   sx={{
-                    bgcolor: "rgba(255,255,255,0.16)",
-                    color: "#fff",
+                    bgcolor: "secondary.main",
+                    color: "text.primary",
                     fontWeight: 700,
                     mb: 2.5,
-                    backdropFilter: "blur(6px)",
                   }}
                 />
                 <Typography variant="h2" sx={{ fontSize: { xs: "2.2rem", md: "3.2rem" } }}>
@@ -78,7 +78,8 @@ export default function Home() {
                 </Typography>
                 <Typography
                   variant="h6"
-                  sx={{ mt: 2, maxWidth: 560, fontWeight: 400, opacity: 0.92 }}
+                  color="text.secondary"
+                  sx={{ mt: 2, maxWidth: 560, fontWeight: 400 }}
                 >
                   A safe, confidential way for students, families, staff, and community
                   members to report bullying, threats, or other concerns — anonymously.
@@ -98,9 +99,9 @@ export default function Home() {
                     variant="contained"
                     startIcon={<CampaignRoundedIcon />}
                     sx={{
-                      bgcolor: "#fff",
-                      color: "primary.main",
-                      "&:hover": { bgcolor: "#F1F5FF" },
+                      bgcolor: "background.paper",
+                      color: "text.primary",
+                      "&:hover": { bgcolor: "secondary.main" },
                     }}
                   >
                     Submit Anonymous Report
@@ -112,9 +113,9 @@ export default function Home() {
                     variant="outlined"
                     startIcon={<ContactMailRoundedIcon />}
                     sx={{
-                      color: "#fff",
-                      borderColor: "rgba(255,255,255,0.6)",
-                      "&:hover": { borderColor: "#fff", bgcolor: "rgba(255,255,255,0.08)" },
+                      color: "text.primary",
+                      borderColor: "text.primary",
+                      "&:hover": { borderColor: "text.primary", bgcolor: "secondary.main" },
                     }}
                   >
                     Report with Contact Info
@@ -126,7 +127,7 @@ export default function Home() {
                 <Button
                   href="tel:911"
                   startIcon={<LocalPhoneRoundedIcon />}
-                  sx={{ mt: 2, color: "#fff", opacity: 0.9 }}
+                  sx={{ mt: 2, color: "text.primary" }}
                 >
                   Emergency? Call 911 immediately
                 </Button>
@@ -137,10 +138,8 @@ export default function Home() {
               <Reveal delay={160}>
                 <Card
                   sx={{
-                    bgcolor: "rgba(255,255,255,0.10)",
-                    border: "1px solid rgba(255,255,255,0.18)",
-                    backdropFilter: "blur(10px)",
-                    color: "#fff",
+                    bgcolor: "background.paper",
+                    borderColor: "divider",
                   }}
                 >
                   <CardContent sx={{ p: 3 }}>
@@ -151,10 +150,11 @@ export default function Home() {
                             sx={{
                               width: 40,
                               height: 40,
-                              borderRadius: 2,
+                              borderRadius: 1.5,
                               display: "grid",
                               placeItems: "center",
-                              bgcolor: "rgba(255,255,255,0.16)",
+                              bgcolor: "secondary.main",
+                              color: "text.primary",
                               flexShrink: 0,
                             }}
                           >
@@ -162,7 +162,7 @@ export default function Home() {
                           </Box>
                           <Box>
                             <Typography sx={{ fontWeight: 700 }}>{p.title}</Typography>
-                            <Typography variant="body2" sx={{ opacity: 0.85 }}>
+                            <Typography variant="body2" color="text.secondary">
                               {p.body}
                             </Typography>
                           </Box>
@@ -294,9 +294,8 @@ export default function Home() {
                           display: "grid",
                           placeItems: "center",
                           fontWeight: 800,
-                          color: "#fff",
-                          background: (t) =>
-                            `linear-gradient(135deg, ${t.palette.primary.main}, ${t.palette.secondary.main})`,
+                          color: "text.primary",
+                          bgcolor: "primary.main",
                         }}
                       >
                         {i + 1}
@@ -317,10 +316,9 @@ export default function Home() {
           <Card
             sx={{
               overflow: "hidden",
-              color: "#fff",
-              border: "none",
-              background: (t) =>
-                `linear-gradient(120deg, ${t.palette.primary.dark}, ${t.palette.secondary.dark})`,
+              color: "text.primary",
+              bgcolor: "primary.main",
+              borderColor: "divider",
             }}
           >
             <CardContent sx={{ p: { xs: 3, md: 5 } }}>
@@ -329,7 +327,7 @@ export default function Home() {
                   <Typography variant="h4">
                     Together, we can build safer schools.
                   </Typography>
-                  <Typography sx={{ mt: 1, opacity: 0.9 }}>
+                  <Typography color="text.secondary" sx={{ mt: 1 }}>
                     Recognize warning signs early, report concerns responsibly, and help
                     every student feel safe.
                   </Typography>
@@ -342,7 +340,11 @@ export default function Home() {
                       variant="contained"
                       fullWidth
                       size="large"
-                      sx={{ bgcolor: "#fff", color: "primary.main", "&:hover": { bgcolor: "#F1F5FF" } }}
+                      sx={{
+                        bgcolor: "background.paper",
+                        color: "text.primary",
+                        "&:hover": { bgcolor: "secondary.main" },
+                      }}
                     >
                       Report a concern
                     </Button>
@@ -351,7 +353,11 @@ export default function Home() {
                       href="/status"
                       variant="outlined"
                       fullWidth
-                      sx={{ color: "#fff", borderColor: "rgba(255,255,255,0.6)" }}
+                      sx={{
+                        color: "text.primary",
+                        borderColor: "text.primary",
+                        "&:hover": { borderColor: "text.primary", bgcolor: "secondary.main" },
+                      }}
                     >
                       Check report status
                     </Button>

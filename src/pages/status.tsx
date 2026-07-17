@@ -246,7 +246,7 @@ export default function StatusPage() {
                               borderRadius: 3,
                               borderTopRightRadius: mine ? 4 : 12,
                               borderTopLeftRadius: mine ? 12 : 4,
-                              color: mine ? "#fff" : "text.primary",
+                              color: "text.primary",
                               bgcolor: mine ? "primary.main" : "action.hover",
                             }}
                           >

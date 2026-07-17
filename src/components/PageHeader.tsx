@@ -15,11 +15,12 @@ export default function PageHeader({ eyebrow, title, subtitle, action }: PageHea
       sx={{
         position: "relative",
         overflow: "hidden",
-        color: "#fff",
+        color: "text.primary",
         pt: { xs: 6, md: 8 },
         pb: { xs: 6, md: 8 },
-        background: (t) =>
-          `radial-gradient(1200px 400px at 15% -20%, ${t.palette.secondary.main}55, transparent), linear-gradient(135deg, ${t.palette.primary.dark}, ${t.palette.primary.main})`,
+        bgcolor: "primary.main",
+        borderBottom: "1px solid",
+        borderColor: "divider",
       }}
     >
       <Container maxWidth="lg">
@@ -38,7 +39,7 @@ export default function PageHeader({ eyebrow, title, subtitle, action }: PageHea
                     letterSpacing: "0.14em",
                     fontWeight: 700,
                     fontSize: "0.75rem",
-                    opacity: 0.85,
+                    color: "text.secondary",
                     mb: 1,
                   }}
                 >
@@ -51,7 +52,8 @@ export default function PageHeader({ eyebrow, title, subtitle, action }: PageHea
               {subtitle && (
                 <Typography
                   variant="body1"
-                  sx={{ mt: 1.5, maxWidth: 640, opacity: 0.9 }}
+                  color="text.secondary"
+                  sx={{ mt: 1.5, maxWidth: 640 }}
                 >
                   {subtitle}
                 </Typography>

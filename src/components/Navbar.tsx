@@ -13,7 +13,6 @@ import {
   ListItemText,
   Stack,
   Toolbar,
-  useScrollTrigger,
 } from "@mui/material";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
@@ -31,7 +30,6 @@ const NAV_LINKS = [
 export default function Navbar() {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
-  const trigger = useScrollTrigger({ disableHysteresis: true, threshold: 8 });
 
   const isActive = (href: string) =>
     href === "/" ? router.pathname === "/" : router.pathname.startsWith(href);
@@ -40,11 +38,10 @@ export default function Navbar() {
     <AppBar
       position="sticky"
       sx={{
-        backdropFilter: "saturate(180%) blur(12px)",
-        backgroundColor: trigger ? "rgba(255,255,255,0.82)" : "rgba(255,255,255,0.6)",
+        backgroundColor: "background.paper",
         borderBottom: "1px solid",
-        borderColor: trigger ? "divider" : "transparent",
-        transition: "all .3s cubic-bezier(0.16,1,0.3,1)",
+        borderColor: "divider",
+        transition: "border-color .2s ease",
       }}
     >
       <Container maxWidth="lg">

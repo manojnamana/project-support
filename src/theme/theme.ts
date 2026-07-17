@@ -1,15 +1,15 @@
 import { createTheme, alpha } from "@mui/material/styles";
 
-// Centralized, calm and trustworthy palette suited to a school-safety context.
+// Calm, neutral palette suited to a government school-safety context.
 const BRAND = {
-  primary: "#2563EB", // confident blue
-  primaryDark: "#1E40AF",
-  secondary: "#0D9488", // supportive teal
-  ink: "#0F172A", // slate-900 text
-  muted: "#64748B", // slate-500
-  surface: "#F6F8FC", // page background
+  primary: "#C9B59C",
+  primaryDark: "#C9B59C",
+  secondary: "#D9CFC7",
+  ink: "#0F172A",
+  muted: "#64748B",
+  surface: "#F9F8F6",
   paper: "#FFFFFF",
-  border: "#E2E8F0",
+  border: "#EFE9E3",
 };
 
 const theme = createTheme({
@@ -19,11 +19,11 @@ const theme = createTheme({
     primary: {
       main: BRAND.primary,
       dark: BRAND.primaryDark,
-      contrastText: "#FFFFFF",
+      contrastText: BRAND.ink,
     },
     secondary: {
       main: BRAND.secondary,
-      contrastText: "#FFFFFF",
+      contrastText: BRAND.ink,
     },
     success: { main: "#16A34A" },
     warning: { main: "#D97706" },
@@ -40,22 +40,21 @@ const theme = createTheme({
     divider: BRAND.border,
   },
   shape: {
-    borderRadius: 14,
+    borderRadius: 8,
   },
   typography: {
     fontFamily:
       '"Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
-    h1: { fontWeight: 800, letterSpacing: "-0.03em" },
-    h2: { fontWeight: 800, letterSpacing: "-0.02em" },
-    h3: { fontWeight: 700, letterSpacing: "-0.02em" },
-    h4: { fontWeight: 700, letterSpacing: "-0.01em" },
-    h5: { fontWeight: 700 },
-    h6: { fontWeight: 700 },
+    h1: { fontWeight: 700, letterSpacing: "-0.02em" },
+    h2: { fontWeight: 700, letterSpacing: "-0.02em" },
+    h3: { fontWeight: 700, letterSpacing: "-0.01em" },
+    h4: { fontWeight: 700 },
+    h5: { fontWeight: 600 },
+    h6: { fontWeight: 600 },
     subtitle1: { fontWeight: 600 },
     button: { fontWeight: 600, textTransform: "none" },
   },
   transitions: {
-    // Slightly slower, smoother easing across the app.
     easing: {
       easeInOut: "cubic-bezier(0.4, 0, 0.2, 1)",
       easeOut: "cubic-bezier(0.16, 1, 0.3, 1)",
@@ -74,9 +73,8 @@ const theme = createTheme({
         "*": { boxSizing: "border-box" },
         "html, body, #__next": { height: "100%" },
         "::selection": {
-          background: alpha(BRAND.primary, 0.16),
+          background: alpha(BRAND.primary, 0.35),
         },
-        // Custom slim scrollbars used within scrollable dropdowns and content.
         "*::-webkit-scrollbar": { width: 8, height: 8 },
         "*::-webkit-scrollbar-thumb": {
           backgroundColor: alpha(BRAND.muted, 0.35),
@@ -91,18 +89,16 @@ const theme = createTheme({
       defaultProps: { disableElevation: true },
       styleOverrides: {
         root: {
-          borderRadius: 10,
+          borderRadius: 8,
           paddingInline: 20,
           paddingBlock: 10,
-          transition:
-            "transform .2s cubic-bezier(0.16,1,0.3,1), box-shadow .25s ease, background-color .2s ease",
-          "&:hover": { transform: "translateY(-1px)" },
-          "&:active": { transform: "translateY(0)" },
+          transition: "background-color .2s ease, border-color .2s ease, color .2s ease",
         },
         containedPrimary: {
-          boxShadow: `0 8px 20px -8px ${alpha(BRAND.primary, 0.7)}`,
+          boxShadow: "none",
           "&:hover": {
-            boxShadow: `0 12px 26px -8px ${alpha(BRAND.primary, 0.8)}`,
+            boxShadow: "none",
+            backgroundColor: BRAND.secondary,
           },
         },
       },
@@ -117,26 +113,25 @@ const theme = createTheme({
       defaultProps: { elevation: 0, variant: "outlined" },
       styleOverrides: {
         root: {
-          borderRadius: 18,
-          transition:
-            "transform .3s cubic-bezier(0.16,1,0.3,1), box-shadow .3s ease, border-color .3s ease",
+          borderRadius: 10,
+          transition: "border-color .2s ease",
         },
       },
     },
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          borderRadius: 10,
+          borderRadius: 8,
           transition: "box-shadow .2s ease, border-color .2s ease",
           "&.Mui-focused": {
-            boxShadow: `0 0 0 4px ${alpha(BRAND.primary, 0.12)}`,
+            boxShadow: `0 0 0 3px ${alpha(BRAND.primary, 0.25)}`,
           },
         },
       },
     },
     MuiChip: {
       styleOverrides: {
-        root: { fontWeight: 600, borderRadius: 8 },
+        root: { fontWeight: 600, borderRadius: 6 },
       },
     },
     MuiAppBar: {

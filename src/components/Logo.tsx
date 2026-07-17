@@ -14,13 +14,11 @@ export default function Logo({ compact = false, onDark = false }: LogoProps) {
         sx={{
           width: 38,
           height: 38,
-          borderRadius: 2,
+          borderRadius: 1.5,
           display: "grid",
           placeItems: "center",
-          color: "#fff",
-          background: (t) =>
-            `linear-gradient(135deg, ${t.palette.primary.main}, ${t.palette.secondary.main})`,
-          boxShadow: (t) => `0 8px 18px -8px ${t.palette.primary.main}`,
+          color: "text.primary",
+          bgcolor: "primary.main",
         }}
       >
         <ShieldRoundedIcon fontSize="small" />

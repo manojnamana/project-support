@@ -55,17 +55,17 @@ const STEPS = [
   "Contact",
 ];
 
-const GradientConnector = styled(StepConnector)(({ theme }) => ({
+const SolidConnector = styled(StepConnector)(({ theme }) => ({
   [`&.${stepConnectorClasses.active} .${stepConnectorClasses.line}, &.${stepConnectorClasses.completed} .${stepConnectorClasses.line}`]:
     {
-      backgroundImage: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+      backgroundColor: theme.palette.primary.main,
     },
   [`& .${stepConnectorClasses.line}`]: {
     height: 3,
     border: 0,
     borderRadius: 2,
     backgroundColor: theme.palette.divider,
-    transition: "background .4s ease",
+    transition: "background-color .3s ease",
   },
 }));
 
@@ -188,7 +188,7 @@ export default function ReportPage() {
           <Stepper
             activeStep={activeStep}
             alternativeLabel
-            connector={<GradientConnector />}
+            connector={<SolidConnector />}
             sx={{ mb: 4 }}
           >
             {STEPS.map((label) => (
