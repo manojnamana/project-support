@@ -33,6 +33,7 @@ import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 
 import PageHeader from "@/components/PageHeader";
 import EmergencyBanner from "@/components/EmergencyBanner";
+import AppSnackbar from "@/utils/AppSnackbar";
 import ScrollableAutocomplete, {
   type AutocompleteOption,
 } from "@/components/ScrollableAutocomplete";
@@ -55,6 +56,21 @@ const STEPS = [
   "Contact",
 ];
 
+function normalizeConcernText(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+/** Returns a listed concern type when free-text matches its label (excluding "Other"). */
+function findMatchingConcernType(text: string) {
+  const normalized = normalizeConcernText(text);
+  if (!normalized) return null;
+  return (
+    CONCERN_TYPES.find(
+      (c) => c.id !== "other" && normalizeConcernText(c.label) === normalized
+    ) ?? null
+  );
+}
+
 const SolidConnector = styled(StepConnector)(({ theme }) => ({
   [`&.${stepConnectorClasses.active} .${stepConnectorClasses.line}, &.${stepConnectorClasses.completed} .${stepConnectorClasses.line}`]:
     {
@@ -73,6 +89,7 @@ interface FormState {
   school: AutocompleteOption | null;
   otherLocation: string;
   concerns: string[];
+  otherConcern: string;
   urgency: Severity | "";
   description: string;
   evidence: string[];
@@ -103,6 +120,7 @@ export default function ReportPage() {
     school: null,
     otherLocation: "",
     concerns: [],
+    otherConcern: "",
     urgency: "",
     description: "",
     evidence: [],
@@ -111,6 +129,10 @@ export default function ReportPage() {
     phone: "",
     anonymous: true,
   });
+  const [snackbar, setSnackbar] = React.useState<{
+    open: boolean;
+    message: string;
+  }>({ open: false, message: "" });
 
   // Preselect anonymity based on the entry CTA (?mode=anonymous|contact).
   React.useEffect(() => {
@@ -123,13 +145,31 @@ export default function ReportPage() {
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
 
+  const closeSnackbar = () => setSnackbar((s) => ({ ...s, open: false }));
+
+  const handleOtherConcernChange = (value: string) => {
+    set("otherConcern", value);
+    const match = findMatchingConcernType(value);
+    if (match) {
+      setSnackbar({
+        open: true,
+        message: `"${match.label}" is already listed. Please select it from the options above instead of Other.`,
+      });
+    }
+  };
+
   const toggleConcern = (id: string) =>
-    setForm((f) => ({
-      ...f,
-      concerns: f.concerns.includes(id)
+    setForm((f) => {
+      const removing = f.concerns.includes(id);
+      const concerns = removing
         ? f.concerns.filter((c) => c !== id)
-        : [...f.concerns, id],
-    }));
+        : [...f.concerns, id];
+      return {
+        ...f,
+        concerns,
+        otherConcern: id === "other" && removing ? "" : f.otherConcern,
+      };
+    });
 
   const toggleEvidence = (id: string) =>
     setForm((f) => ({
@@ -141,13 +181,21 @@ export default function ReportPage() {
 
   const isOtherLocation =
     form.school?.value === "other-school" || form.school?.value === "other-area";
+  const isOtherConcern = form.concerns.includes("other");
+  const otherConcernMatchesExisting = Boolean(
+    isOtherConcern && findMatchingConcernType(form.otherConcern)
+  );
 
   const canContinue = () => {
     switch (activeStep) {
       case 0:
         return !!form.school && (!isOtherLocation || form.otherLocation.trim().length > 2);
       case 1:
-        return form.concerns.length > 0;
+        return (
+          form.concerns.length > 0 &&
+          (!isOtherConcern || form.otherConcern.trim().length > 2) &&
+          !otherConcernMatchesExisting
+        );
       case 2:
         return form.urgency !== "";
       case 3:
@@ -273,6 +321,25 @@ export default function ReportPage() {
                       );
                     })}
                   </Grid>
+                  {isOtherConcern && (
+                    <Fade in>
+                      <TextField
+                        sx={{ mt: 2.5 }}
+                        fullWidth
+                        required
+                        label="Describe the concern"
+                        placeholder="Briefly describe the concern not listed above"
+                        value={form.otherConcern}
+                        onChange={(e) => handleOtherConcernChange(e.target.value)}
+                        helperText={
+                          otherConcernMatchesExisting
+                            ? "This concern already exists in the list above. Select it instead."
+                            : "Required when Other is selected."
+                        }
+                        error={otherConcernMatchesExisting}
+                      />
+                    </Fade>
+                  )}
                 </Box>
               </Fade>
             )}
@@ -303,7 +370,7 @@ export default function ReportPage() {
                           <CardContent sx={{ display: "flex", gap: 1.5, py: 1.5, "&:last-child": { pb: 1.5 } }}>
                             <Radio checked={selected} color={u.color} tabIndex={-1} />
                             <Box sx={{ flexGrow: 1 }}>
-                              <Stack direction="row" spacing={1} alignItems="center">
+                              <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems={{xs: "flex-start",sm:"center"}}>
                                 <Typography sx={{ fontWeight: 700 }}>{u.title}</Typography>
                                 <Chip label={u.helper} size="small" color={u.color} variant="outlined" />
                               </Stack>
@@ -532,6 +599,13 @@ export default function ReportPage() {
           </Stack>
         </Card>
       </Container>
+
+      <AppSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity="warning"
+        onClose={closeSnackbar}
+      />
     </Box>
   );
 }
@@ -549,7 +623,10 @@ function StepHeading({ title, caption }: { title: string; caption: string }) {
 
 function ReviewSummary({ form }: { form: FormState }) {
   const concernLabels = CONCERN_TYPES.filter((c) => form.concerns.includes(c.id)).map(
-    (c) => c.label
+    (c) =>
+      c.id === "other" && form.otherConcern.trim()
+        ? `Other (${form.otherConcern.trim()})`
+        : c.label
   );
   const rows: { label: string; value: string }[] = [
     {

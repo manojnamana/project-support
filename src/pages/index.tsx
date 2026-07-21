@@ -25,6 +25,7 @@ import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import Reveal from "@/components/Reveal";
 import StatCard from "@/components/StatCard";
 import { CONCERN_HIGHLIGHTS, HOW_TO_STEPS } from "@/data";
+import { SearchRounded } from "@mui/icons-material";
 
 const PROMISES = [
   {
@@ -34,8 +35,8 @@ const PROMISES = [
   },
   {
     icon: <LockRoundedIcon />,
-    title: "Safe & confidential",
-    body: "Reviewed only by trained school officials and partners.",
+    title: "Safe & Encrypted",
+    body: "All data is encrypted and stored securely.",
   },
   {
     icon: <ForumRoundedIcon />,
@@ -61,8 +62,8 @@ export default function Home() {
         }}
       >
         <Container maxWidth="lg">
-          <Grid container spacing={6} alignItems="center">
-            <Grid size={{ xs: 12, md: 7 }}>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Stack>
               <Reveal>
                 <Chip
                   label="See Something. Say Something."
@@ -89,6 +90,8 @@ export default function Home() {
               <Reveal delay={120}>
                 <Stack
                   direction={{ xs: "column", sm: "row" }}
+                  justifyContent="center"
+                  alignItems="center"
                   spacing={1.5}
                   sx={{ mt: 4 }}
                 >
@@ -99,83 +102,55 @@ export default function Home() {
                     variant="contained"
                     startIcon={<CampaignRoundedIcon />}
                     sx={{
-                      bgcolor: "background.paper",
-                      color: "text.primary",
-                      "&:hover": { bgcolor: "secondary.main" },
+                      bgcolor: "warning.main",
+                      color: "common.white",
+                      "&:hover": { bgcolor: "common.white",color: "warning.main" },
+                      minWidth: "300px",
+                      maxWidth: "300px",
                     }}
                   >
                     Submit Anonymous Report
                   </Button>
                   <Button
                     component={Link}
-                    href="/report?mode=contact"
+                    href="/status"
                     size="large"
                     variant="outlined"
-                    startIcon={<ContactMailRoundedIcon />}
+                    startIcon={<SearchRounded />}
                     sx={{
-                      color: "text.primary",
-                      borderColor: "text.primary",
+                      color: "background.paper",
+                      borderColor: "background.default",
                       "&:hover": { borderColor: "text.primary", bgcolor: "secondary.main" },
+                      minWidth: "300px",
+                      maxWidth: "300px",
                     }}
                   >
-                    Report with Contact Info
+                    Check Report Status
                   </Button>
                 </Stack>
               </Reveal>
 
               <Reveal delay={220}>
+                <Box sx={{ textAlign: "center",justifyContent: "center",display: "flex" }}>
                 <Button
                   href="tel:911"
+                  
                   startIcon={<LocalPhoneRoundedIcon />}
-                  sx={{ mt: 2, color: "text.primary" }}
+                  sx={{ mt: 2, minWidth: "300px",
+                    maxWidth: "300px", color: "text.primary",
+                    }}
                 >
                   Emergency? Call 911 immediately
                 </Button>
+                </Box>
               </Reveal>
-            </Grid>
+            </Stack>
 
-            <Grid size={{ xs: 12, md: 5 }}>
-              <Reveal delay={160}>
-                <Card
-                  sx={{
-                    bgcolor: "background.paper",
-                    borderColor: "divider",
-                  }}
-                >
-                  <CardContent sx={{ p: 3 }}>
-                    <Stack spacing={2}>
-                      {PROMISES.map((p) => (
-                        <Stack key={p.title} direction="row" spacing={1.5} alignItems="flex-start">
-                          <Box
-                            sx={{
-                              width: 40,
-                              height: 40,
-                              borderRadius: 1.5,
-                              display: "grid",
-                              placeItems: "center",
-                              bgcolor: "secondary.main",
-                              color: "text.primary",
-                              flexShrink: 0,
-                            }}
-                          >
-                            {p.icon}
-                          </Box>
-                          <Box>
-                            <Typography sx={{ fontWeight: 700 }}>{p.title}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {p.body}
-                            </Typography>
-                          </Box>
-                        </Stack>
-                      ))}
-                    </Stack>
-                  </CardContent>
-                </Card>
-              </Reveal>
-            </Grid>
-          </Grid>
+          
+          </Box>
         </Container>
       </Box>
+
 
       {/* Concern types */}
       <Container maxWidth="lg" sx={{ mt: { xs: -6, md: -8 }, position: "relative" }}>
@@ -210,8 +185,50 @@ export default function Home() {
         </Reveal>
       </Container>
 
+      {/* Promises */}
+      <Container maxWidth="lg" sx={{mt:6 }}> 
+                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Reveal delay={160}>
+                
+                 
+                    <Stack spacing={2}>
+                      <Grid container spacing={2}>
+                      {PROMISES.map((p) => (
+                        <Grid key={p.title} size={{ xs: 12, md: 4 }}>
+                          <Card variant="outlined" sx={{ p: 2, borderColor: "divider",
+                            minHeight: {sm:"140px",},maxHeight: {sm:"140px"},bgcolor: "primary.main" }}>
+                          <Box
+                            sx={{
+                              width: 40,
+                              height: 40,
+                              borderRadius: 1.5,
+                              display: "grid",
+                              placeItems: "center",
+                              bgcolor: "secondary.main",
+                              color: "text.primary",
+                              flexShrink: 0,
+                            }}
+                          >
+                            {p.icon}
+                          </Box>
+                          <Box>
+                            <Typography sx={{ fontWeight: 700 }}>{p.title}</Typography>
+                            <Typography variant="body2" color="common.white">
+                              {p.body}
+                            </Typography>
+                          </Box>
+                          </Card>
+                        </Grid>
+                      ))}
+                      </Grid>
+                    </Stack>
+                
+              </Reveal>
+            </Box>
+                    </Container>
+
       {/* Stats */}
-      <Container maxWidth="lg" sx={{ mt: 6 }}>
+      {/* <Container maxWidth="lg" sx={{ mt: 6 }}>
         <Grid container spacing={2.5}>
           <Grid size={{ xs: 6, md: 3 }}>
             <Reveal>
@@ -249,7 +266,7 @@ export default function Home() {
             </Reveal>
           </Grid>
         </Grid>
-      </Container>
+      </Container> */}
 
       {/* How to use */}
       <Container maxWidth="lg" sx={{ mt: { xs: 8, md: 10 } }}>
