@@ -19,10 +19,9 @@ export default function App(props: AppProps) {
   return (
     <AppCacheProvider {...props}>
       <Head>
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1, maximum-scale=1"
-        />
+        {/* maximum-scale removed: blocking pinch-zoom fails WCAG 1.4.4,
+            which matters for a public safety tool. */}
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Project SUPPORT — Anonymous School Safety Reporting</title>
         <meta
           name="description"

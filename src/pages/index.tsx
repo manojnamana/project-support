@@ -74,7 +74,7 @@ export default function Home() {
                     mb: 2.5,
                   }}
                 />
-                <Typography variant="h2" sx={{ fontSize: { xs: "2.2rem", md: "3.2rem" } }}>
+                <Typography variant="h2" color="common.white" sx={{ fontSize: { xs: "2.2rem", md: "3.2rem" } }}>
                   Report a school safety concern
                 </Typography>
                 <Typography
@@ -137,7 +137,8 @@ export default function Home() {
                   
                   startIcon={<LocalPhoneRoundedIcon />}
                   sx={{ mt: 2, minWidth: "300px",
-                    maxWidth: "300px", color: "text.primary",
+                    maxWidth: "300px", color: "common.white",
+                    "&:hover": { color: "secondary.main" },
                     }}
                 >
                   Emergency? Call 911 immediately
@@ -212,7 +213,7 @@ export default function Home() {
                             {p.icon}
                           </Box>
                           <Box>
-                            <Typography sx={{ fontWeight: 700 }}>{p.title}</Typography>
+                            <Typography sx={{ fontWeight: 700, color: "common.white" }}>{p.title}</Typography>
                             <Typography variant="body2" color="common.white">
                               {p.body}
                             </Typography>
@@ -311,7 +312,7 @@ export default function Home() {
                           display: "grid",
                           placeItems: "center",
                           fontWeight: 800,
-                          color: "text.primary",
+                          color: "common.white",
                           bgcolor: "primary.main",
                         }}
                       >
@@ -341,7 +342,7 @@ export default function Home() {
             <CardContent sx={{ p: { xs: 3, md: 5 } }}>
               <Grid container spacing={3} alignItems="center">
                 <Grid size={{ xs: 12, md: 8 }}>
-                  <Typography variant="h4">
+                  <Typography variant="h4" color="common.white">
                     Together, we can build safer schools.
                   </Typography>
                   <Typography color="common.white" sx={{ mt: 1 }}>
@@ -371,9 +372,9 @@ export default function Home() {
                       variant="outlined"
                       fullWidth
                       sx={{
-                        color: "text.primary",
-                        borderColor: "text.primary",
-                        "&:hover": { borderColor: "text.primary", bgcolor: "secondary.main" },
+                        color: "common.white",
+                        borderColor: "common.white",
+                        "&:hover": { borderColor: "common.white", bgcolor: "secondary.main" },
                       }}
                     >
                       Check report status

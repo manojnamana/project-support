@@ -1,35 +1,41 @@
 import * as React from "react";
 import { Chip, type ChipProps } from "@mui/material";
-import type { ReportStatus } from "@/data";
+import {
+  STAFF_STATUS_LABEL,
+  PUBLIC_STATUS_LABEL,
+  STATUS_COLOR,
+  type CaseStatus,
+} from "@/lib/statusDisplay";
 
-const MAP: Record<ReportStatus, ChipProps["color"]> = {
-  Open: "default",
-  "Under Review": "info",
-  Referred: "warning",
-  "Action Taken": "secondary",
-  Resolved: "success",
-  Closed: "default",
-};
+interface StatusChipProps {
+  status: CaseStatus;
+  size?: ChipProps["size"];
+  /** Use the reduced public vocabulary a reporter is allowed to see. */
+  audience?: "staff" | "public";
+}
 
 export default function StatusChip({
   status,
   size = "small",
-}: {
-  status: ReportStatus;
-  size?: ChipProps["size"];
-}) {
+  audience = "staff",
+}: StatusChipProps) {
+  const label =
+    audience === "public"
+      ? PUBLIC_STATUS_LABEL[status]
+      : STAFF_STATUS_LABEL[status];
+  const color = STATUS_COLOR[status] ?? "default";
+  if (!label) return null;
   return (
     <Chip
-      label={status}
-      color={MAP[status]}
+      label={label}
+      color={color}
       size={size}
       variant="filled"
-      sx={{
-        bgcolor: (t) =>
-          MAP[status] === "default"
-            ? t.palette.action.selected
-            : undefined,
-      }}
+      sx={(t) => ({
+        bgcolor: color === "default" ? t.palette.action.selected : undefined,
+        textAlign: "center",
+        pt:0.4
+      })}
     />
   );
 }

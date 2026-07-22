@@ -15,10 +15,10 @@ export default function PageHeader({ eyebrow, title, subtitle, action }: PageHea
       sx={{
         position: "relative",
         overflow: "hidden",
-        color: "text.primary",
+        bgcolor: "primary.main",
+        color: "primary.contrastText", // was text.primary — flipped on colored bg
         pt: { xs: 6, md: 8 },
         pb: { xs: 6, md: 8 },
-        bgcolor: "primary.main",
         borderBottom: "1px solid",
         borderColor: "divider",
       }}
@@ -39,21 +39,21 @@ export default function PageHeader({ eyebrow, title, subtitle, action }: PageHea
                     letterSpacing: "0.14em",
                     fontWeight: 700,
                     fontSize: "0.75rem",
-                    color: "common.white",
+                    color: "primary.contrastText",
+                    opacity: 0.85,
                     mb: 1,
                   }}
                 >
                   {eyebrow}
                 </Typography>
               )}
-              <Typography variant="h3" sx={{ maxWidth: 720 }}>
+              <Typography variant="h3" sx={{ maxWidth: 720, color: "primary.contrastText" }}>
                 {title}
               </Typography>
               {subtitle && (
                 <Typography
                   variant="body1"
-                  color="common.white"
-                  sx={{ mt: 1.5, maxWidth: 640 }}
+                  sx={{ mt: 1.5, maxWidth: 640, color: "primary.contrastText", opacity: 0.9 }}
                 >
                   {subtitle}
                 </Typography>

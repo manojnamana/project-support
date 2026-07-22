@@ -1,148 +1,83 @@
-import { createTheme, alpha } from "@mui/material/styles";
+import { createTheme } from "@mui/material/styles";
 
-// Calm, neutral palette suited to a government school-safety context.
-const BRAND = {
-  primary: "#68B3D3",
-  primaryDark: "#99D6F0",
-  secondary: "#A1D8FF",
-  ink: "#0F172A",
-  muted: "#64748B",
-  surface: "#F9F8F6",
-  paper: "#FFFFFF",
-  border: "#D9CFC7",
-};
+// ————————————————————————————————————————————————————————————————
+// Project SUPPORT theme — spruce + amber.
+// The whole point of this file: every surface color has a correct
+// contrastText so components can use `*.contrastText` and never hardcode
+// common.white / text.primary on a colored background again.
+// ————————————————————————————————————————————————————————————————
+
+const SPRUCE = "#16332C";       // primary
+const SPRUCE_DARK = "#0E241E";
+const SPRUCE_LIGHT = "#24473E";
+const AMBER = "#E8A13D";        // secondary / calls to action
+const AMBER_DARK = "#C9821B";
+const AMBER_LIGHT = "#F2C078";
+const SAGE = "#DCE7DF";
+const PAPER = "#FFFFFF";
+const CANVAS = "#F7F5F0";       // warm off-white page background
+const INK = "#1E2422";
+const INK_SOFT = "#5C6662";
 
 const theme = createTheme({
-  cssVariables: true,
   palette: {
     mode: "light",
     primary: {
-      main: BRAND.primary,
-      dark: BRAND.primaryDark,
-      contrastText: BRAND.ink,
+      main: SPRUCE,
+      dark: SPRUCE_DARK,
+      light: SPRUCE_LIGHT,
+      contrastText: "#FFFFFF",     // white reads on spruce — use this, not common.white
     },
     secondary: {
-      main: BRAND.secondary,
-      contrastText: BRAND.ink,
+      main: AMBER,
+      dark: AMBER_DARK,
+      light: AMBER_LIGHT,
+      contrastText: SPRUCE,        // dark text reads on amber, NOT white
     },
-    success: { main: "#16A34A" },
-    warning: { main: "#D97706" },
-    error: { main: "#DC2626" },
-    info: { main: "#0284C7" },
-    background: {
-      default: BRAND.surface,
-      paper: BRAND.paper,
-    },
-    text: {
-      primary: BRAND.ink,
-      secondary: BRAND.muted,
-    },
-    divider: BRAND.border,
+    error:   { main: "#B93A2B", light: "#E4A79F", contrastText: "#FFFFFF" },
+    warning: { main: "#C9821B", light: "#F2C078", contrastText: "#1E2422" },
+    info:    { main: "#3E6B7E", light: "#AEC6D0", contrastText: "#FFFFFF" },
+    success: { main: "#3E6B54", light: "#B7CFC0", contrastText: "#FFFFFF" },
+    background: { default: CANVAS, paper: PAPER },
+    text: { primary: INK, secondary: INK_SOFT },
+    divider: "#E3E0D8",
+    action: { hover: "rgba(22,51,44,0.04)", selected: "rgba(22,51,44,0.08)" },
   },
-  shape: {
-    borderRadius: 8,
-  },
+
+  shape: { borderRadius: 12 },
+
   typography: {
-    fontFamily:
-      '"Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
-    h1: { fontWeight: 700, letterSpacing: "-0.02em" },
-    h2: { fontWeight: 700, letterSpacing: "-0.02em" },
-    h3: { fontWeight: 700, letterSpacing: "-0.01em" },
-    h4: { fontWeight: 700 },
-    h5: { fontWeight: 600 },
-    h6: { fontWeight: 600 },
-    subtitle1: { fontWeight: 600 },
-    button: { fontWeight: 600, textTransform: "none" },
+    fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
+    h2: { fontWeight: 800, letterSpacing: "-0.02em" },
+    h3: { fontWeight: 800, letterSpacing: "-0.02em" },
+    h4: { fontWeight: 700, letterSpacing: "-0.01em" },
+    h5: { fontWeight: 700 },
+    h6: { fontWeight: 700 },
+    button: { fontWeight: 700, textTransform: "none" },
+    overline: { fontWeight: 700, letterSpacing: "0.12em" },
   },
-  transitions: {
-    easing: {
-      easeInOut: "cubic-bezier(0.4, 0, 0.2, 1)",
-      easeOut: "cubic-bezier(0.16, 1, 0.3, 1)",
-    },
-    duration: {
-      shortest: 150,
-      shorter: 200,
-      short: 250,
-      standard: 300,
-      complex: 375,
-    },
-  },
+
   components: {
-    MuiCssBaseline: {
-      styleOverrides: {
-        "*": { boxSizing: "border-box" },
-        "html, body, #__next": { height: "100%" },
-        "::selection": {
-          background: alpha(BRAND.primary, 0.35),
-        },
-        "*::-webkit-scrollbar": { width: 8, height: 8 },
-        "*::-webkit-scrollbar-thumb": {
-          backgroundColor: alpha(BRAND.muted, 0.35),
-          borderRadius: 8,
-        },
-        "*::-webkit-scrollbar-thumb:hover": {
-          backgroundColor: alpha(BRAND.muted, 0.55),
-        },
-      },
-    },
     MuiButton: {
       defaultProps: { disableElevation: true },
       styleOverrides: {
-        root: {
-          borderRadius: 8,
-          paddingInline: 20,
-          paddingBlock: 10,
-          transition: "background-color .2s ease, border-color .2s ease, color .2s ease",
-        },
-        containedPrimary: {
-          boxShadow: "none",
-          "&:hover": {
-            boxShadow: "none",
-            backgroundColor: BRAND.secondary,
-          },
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: { backgroundImage: "none" },
-        outlined: { borderColor: BRAND.border },
+        root: { borderRadius: 12, paddingTop: 10, paddingBottom: 10 },
+        containedSecondary: { color: SPRUCE },   // amber button, spruce label
       },
     },
     MuiCard: {
-      defaultProps: { elevation: 0, variant: "outlined" },
+      defaultProps: { variant: "outlined" },
       styleOverrides: {
         root: {
-          borderRadius: 10,
-          transition: "border-color .2s ease",
+          borderRadius: 16,
+          borderColor: "#E3E0D8",
+          transition: "border-color .2s ease, box-shadow .2s ease",
         },
       },
     },
-    MuiOutlinedInput: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          transition: "box-shadow .2s ease, border-color .2s ease",
-          "&.Mui-focused": {
-            boxShadow: `0 0 0 3px ${alpha(BRAND.primary, 0.25)}`,
-          },
-        },
-      },
-    },
-    MuiChip: {
-      styleOverrides: {
-        root: { fontWeight: 600, borderRadius: 6 },
-      },
-    },
-    MuiAppBar: {
-      defaultProps: { elevation: 0, color: "inherit" },
-    },
-    MuiTooltip: {
-      defaultProps: { arrow: true },
-    },
-    MuiLink: {
-      defaultProps: { underline: "hover" },
-    },
+    MuiChip: { styleOverrides: { root: { fontWeight: 600 } } },
+    MuiAppBar: { styleOverrides: { root: { boxShadow: "none" } } },
+    MuiPaper: { styleOverrides: { root: { backgroundImage: "none" } } },
   },
 });
 

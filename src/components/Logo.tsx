@@ -17,8 +17,8 @@ export default function Logo({ compact = false, onDark = false }: LogoProps) {
           borderRadius: 1.5,
           display: "grid",
           placeItems: "center",
-          color: "text.primary",
           bgcolor: "primary.main",
+          color: "primary.contrastText", // was text.primary — invisible if primary is dark
         }}
       >
         <ShieldRoundedIcon fontSize="small" />

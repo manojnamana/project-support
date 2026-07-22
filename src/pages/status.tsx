@@ -5,7 +5,6 @@ import {
   Box,
   Button,
   Card,
-  CardContent,
   Chip,
   Container,
   Divider,
@@ -27,11 +26,12 @@ import Reveal from "@/components/Reveal";
 import SeverityChip from "@/components/SeverityChip";
 import StatusChip from "@/components/StatusChip";
 import {
-  getReportByCase,
   INVESTIGATION_STEPS,
-  type CaseMessage,
-  type Report,
-} from "@/data";
+  STATUS_STEP_INDEX,
+} from "@/lib/statusDisplay";
+import { getReportByCase, type CaseMessage, type Report } from "@/data";
+
+const DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
 
 export default function StatusPage() {
   const router = useRouter();
@@ -67,26 +67,14 @@ export default function StatusPage() {
       {
         from: "Reporter",
         author: "Anonymous reporter",
-        timestamp: new Date().toISOString().slice(0, 16).replace("T", " "),
+        timestamp: new Date().toLocaleString(),
         text: reply.trim(),
       },
     ]);
     setReply("");
   };
 
-  const activeStepIndex = report
-    ? Math.min(
-        {
-          Open: 0,
-          "Under Review": 1,
-          Referred: 3,
-          "Action Taken": 3,
-          Resolved: 5,
-          Closed: 6,
-        }[report.status] ?? 0,
-        INVESTIGATION_STEPS.length - 1
-      )
-    : 0;
+  const activeStepIndex = report ? STATUS_STEP_INDEX[report.status] : 0;
 
   return (
     <Box sx={{ pb: 6 }}>
@@ -135,10 +123,11 @@ export default function StatusPage() {
                 </Button>
               </Grid>
             </Grid>
-            <Alert severity="info" variant="outlined" sx={{ mt: 2, borderRadius: 2 }}>
-              Demo credentials — case <strong>PSV-2026-00458</strong> with PIN{" "}
-              <strong>3049</strong>.
-            </Alert>
+            {DEMO && (
+              <Alert severity="info" variant="outlined" sx={{ mt: 2, borderRadius: 2 }}>
+                Demo credentials — case <strong>PSV-2026-00458</strong> with PIN <strong>3049</strong>.
+              </Alert>
+            )}
             {error && (
               <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>
                 {error}
@@ -151,11 +140,7 @@ export default function StatusPage() {
           <Fade in>
             <Box sx={{ mt: 3 }}>
               <Card sx={{ p: { xs: 2, md: 3 }, mb: 3 }}>
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  justifyContent="space-between"
-                  spacing={2}
-                >
+                <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={2}>
                   <Box>
                     <Typography variant="overline" color="text.secondary">
                       {report.caseNumber}
@@ -168,7 +153,8 @@ export default function StatusPage() {
                     </Stack>
                   </Box>
                   <Stack spacing={1} alignItems={{ xs: "flex-start", sm: "flex-end" }}>
-                    <StatusChip status={report.status} />
+                    {/* reporter sees the reduced public vocabulary */}
+                    <StatusChip status={report.status} audience="public" />
                     <SeverityChip severity={report.severity} />
                   </Stack>
                 </Stack>
@@ -193,15 +179,7 @@ export default function StatusPage() {
                   {report.timeline.map((entry, i) => (
                     <Stack key={i} direction="row" spacing={2}>
                       <Stack alignItems="center">
-                        <Box
-                          sx={{
-                            width: 12,
-                            height: 12,
-                            borderRadius: "50%",
-                            bgcolor: "primary.main",
-                            mt: 0.5,
-                          }}
-                        />
+                        <Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: "primary.main", mt: 0.5 }} />
                         {i < report.timeline.length - 1 && (
                           <Box sx={{ width: 2, flexGrow: 1, bgcolor: "divider", my: 0.5 }} />
                         )}
@@ -220,11 +198,8 @@ export default function StatusPage() {
                 </Stack>
               </Card>
 
-              {/* Two-way anonymous messaging */}
               <Card sx={{ p: { xs: 2, md: 3 } }}>
-                <Typography sx={{ fontWeight: 700, mb: 2 }}>
-                  Messages from investigators
-                </Typography>
+                <Typography sx={{ fontWeight: 700, mb: 2 }}>Messages from investigators</Typography>
                 {thread.length === 0 ? (
                   <Typography variant="body2" color="text.secondary">
                     No messages yet. If an investigator has a question, it will appear here.
@@ -234,10 +209,7 @@ export default function StatusPage() {
                     {thread.map((m, i) => {
                       const mine = m.from === "Reporter";
                       return (
-                        <Stack
-                          key={i}
-                          alignItems={mine ? "flex-end" : "flex-start"}
-                        >
+                        <Stack key={i} alignItems={mine ? "flex-end" : "flex-start"}>
                           <Box
                             sx={{
                               maxWidth: "80%",
@@ -246,8 +218,10 @@ export default function StatusPage() {
                               borderRadius: 3,
                               borderTopRightRadius: mine ? 4 : 12,
                               borderTopLeftRadius: mine ? 12 : 4,
-                              color: "text.primary",
+                              // contrast-safe: reporter bubble uses primary + contrastText,
+                              // investigator bubble uses a subtle surface + normal text.
                               bgcolor: mine ? "primary.main" : "action.hover",
+                              color: mine ? "primary.contrastText" : "text.primary",
                             }}
                           >
                             <Typography variant="caption" sx={{ opacity: 0.8, display: "block", mb: 0.25 }}>

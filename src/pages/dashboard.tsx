@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Card,
-  CardContent,
   Chip,
   Container,
   Divider,
@@ -30,6 +29,8 @@ import LoginRoundedIcon from "@mui/icons-material/LoginRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import GavelRoundedIcon from "@mui/icons-material/GavelRounded";
+import HandshakeRoundedIcon from "@mui/icons-material/HandshakeRounded";
 
 import PageHeader from "@/components/PageHeader";
 import Reveal from "@/components/Reveal";
@@ -37,25 +38,15 @@ import StatCard from "@/components/StatCard";
 import SeverityChip from "@/components/SeverityChip";
 import StatusChip from "@/components/StatusChip";
 import ScrollableSelect from "@/components/ScrollableSelect";
+import {
+  OPEN_STATUSES,
+  STATUS_FILTER_OPTIONS,
+  SEVERITY_FILTER_OPTIONS,
+  type CaseStatus,
+} from "@/lib/statusDisplay";
 import { REPORTS, SCHOOLS, type Report } from "@/data";
 
-const STATUS_OPTIONS = [
-  { value: "all", label: "All statuses" },
-  { value: "Open", label: "Open" },
-  { value: "Under Review", label: "Under Review" },
-  { value: "Referred", label: "Referred" },
-  { value: "Action Taken", label: "Action Taken" },
-  { value: "Resolved", label: "Resolved" },
-  { value: "Closed", label: "Closed" },
-];
-
-const SEVERITY_OPTIONS = [
-  { value: "all", label: "All severities" },
-  { value: "Low", label: "Low" },
-  { value: "Moderate", label: "Moderate" },
-  { value: "High", label: "High" },
-  { value: "Emergency", label: "Emergency" },
-];
+const DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
 
 const schoolFilterOptions = [
   { value: "all", label: "All schools" },
@@ -67,7 +58,7 @@ const schoolFilterOptions = [
 ];
 
 function LoginGate({ onLogin }: { onLogin: () => void }) {
-  const [email, setEmail] = React.useState("coordinator@projectsupport.org");
+  const [email, setEmail] = React.useState(DEMO ? "coordinator@projectsupport.org" : "");
   const [password, setPassword] = React.useState("");
   return (
     <Container maxWidth="xs" sx={{ py: { xs: 8, md: 12 } }}>
@@ -81,8 +72,8 @@ function LoginGate({ onLogin }: { onLogin: () => void }) {
                 borderRadius: 2,
                 display: "grid",
                 placeItems: "center",
-                color: "text.primary",
                 bgcolor: "primary.main",
+                color: "primary.contrastText",
               }}
             >
               <LockRoundedIcon />
@@ -93,32 +84,27 @@ function LoginGate({ onLogin }: { onLogin: () => void }) {
             </Typography>
           </Stack>
           <Stack spacing={2}>
-            <TextField
-              label="Work email"
-              fullWidth
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <TextField label="Work email" fullWidth value={email} onChange={(e) => setEmail(e.target.value)} />
             <TextField
               label="Password"
               type="password"
               fullWidth
-              placeholder="Enter any password to preview"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <Button
-              variant="contained"
-              size="large"
-              startIcon={<LoginRoundedIcon />}
-              onClick={onLogin}
-            >
+            <Button variant="contained" size="large" startIcon={<LoginRoundedIcon />} onClick={onLogin}>
               Sign in
             </Button>
           </Stack>
-          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 2, textAlign: "center" }}>
-            Demo mode — any password grants access.
-          </Typography>
+          {DEMO && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block", mt: 2, textAlign: "center" }}
+            >
+              Demo mode — any password grants access.
+            </Typography>
+          )}
         </Card>
       </Reveal>
     </Container>
@@ -154,9 +140,9 @@ export default function DashboardPage() {
   const stats = React.useMemo(
     () => ({
       total: REPORTS.length,
-      open: REPORTS.filter((r) => r.status === "Open" || r.status === "Under Review").length,
-      emergency: REPORTS.filter((r) => r.severity === "Emergency").length,
-      resolved: REPORTS.filter((r) => r.status === "Resolved" || r.status === "Closed").length,
+      open: REPORTS.filter((r) => OPEN_STATUSES.includes(r.status as CaseStatus)).length,
+      emergency: REPORTS.filter((r) => r.severity === "emergency").length,
+      resolved: REPORTS.filter((r) => r.status === "resolved" || r.status === "closed").length,
     }),
     []
   );
@@ -174,7 +160,7 @@ export default function DashboardPage() {
             variant="outlined"
             startIcon={<LogoutRoundedIcon />}
             onClick={() => setAuthed(false)}
-            sx={{ color: "text.primary", borderColor: "text.primary" }}
+            sx={{ color: "primary.contrastText", borderColor: "primary.contrastText" }}
           >
             Sign out
           </Button>
@@ -182,7 +168,6 @@ export default function DashboardPage() {
       />
 
       <Container maxWidth="lg" sx={{ mt: { xs: -4, md: -5 }, position: "relative" }}>
-        {/* Stats */}
         <Grid container spacing={2.5} sx={{ mb: 3 }}>
           <Grid size={{ xs: 6, md: 3 }}>
             <Reveal>
@@ -191,12 +176,7 @@ export default function DashboardPage() {
           </Grid>
           <Grid size={{ xs: 6, md: 3 }}>
             <Reveal delay={70}>
-              <StatCard
-                icon={<PendingActionsRoundedIcon />}
-                value={stats.open}
-                label="Open / reviewing"
-                color="info.main"
-              />
+              <StatCard icon={<PendingActionsRoundedIcon />} value={stats.open} label="Open cases" color="info.main" />
             </Reveal>
           </Grid>
           <Grid size={{ xs: 6, md: 3 }}>
@@ -221,7 +201,6 @@ export default function DashboardPage() {
           </Grid>
         </Grid>
 
-        {/* Filters */}
         <Reveal>
           <Card sx={{ p: { xs: 2, md: 2.5 }, mb: 3 }}>
             <Grid container spacing={2} alignItems="center">
@@ -240,7 +219,7 @@ export default function DashboardPage() {
                   label="Status"
                   value={status}
                   onChange={setStatus}
-                  options={STATUS_OPTIONS}
+                  options={STATUS_FILTER_OPTIONS}
                 />
               </Grid>
               <Grid size={{ xs: 6, md: 2.5 }}>
@@ -249,7 +228,7 @@ export default function DashboardPage() {
                   label="Severity"
                   value={severity}
                   onChange={setSeverity}
-                  options={SEVERITY_OPTIONS}
+                  options={SEVERITY_FILTER_OPTIONS}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 4 }}>
@@ -271,7 +250,6 @@ export default function DashboardPage() {
           </Card>
         </Reveal>
 
-        {/* Table */}
         <Reveal>
           <Card>
             <TableContainer>
@@ -283,6 +261,7 @@ export default function DashboardPage() {
                     <TableCell>Type</TableCell>
                     <TableCell>Severity</TableCell>
                     <TableCell>Status</TableCell>
+                    <TableCell>Flags</TableCell>
                     <TableCell>Submitted</TableCell>
                   </TableRow>
                 </TableHead>
@@ -309,6 +288,28 @@ export default function DashboardPage() {
                       <TableCell>
                         <StatusChip status={r.status} />
                       </TableCell>
+                      <TableCell>
+                        <Stack direction="row" spacing={0.5}>
+                          {r.referredToLe && (
+                            <Chip
+                              icon={<GavelRoundedIcon />}
+                              label="LE"
+                              size="small"
+                              color="error"
+                              variant="outlined"
+                            />
+                          )}
+                          {r.hasIntervention && (
+                            <Chip
+                              icon={<HandshakeRoundedIcon />}
+                              label="Action"
+                              size="small"
+                              color="secondary"
+                              variant="outlined"
+                            />
+                          )}
+                        </Stack>
+                      </TableCell>
                       <TableCell sx={{ whiteSpace: "nowrap", color: "text.secondary" }}>
                         {new Date(r.submitted).toLocaleDateString(undefined, {
                           month: "short",
@@ -319,11 +320,9 @@ export default function DashboardPage() {
                   ))}
                   {filtered.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6}>
+                      <TableCell colSpan={7}>
                         <Box sx={{ py: 5, textAlign: "center" }}>
-                          <Typography color="text.secondary">
-                            No reports match your filters.
-                          </Typography>
+                          <Typography color="text.secondary">No reports match your filters.</Typography>
                         </Box>
                       </TableCell>
                     </TableRow>
@@ -335,7 +334,6 @@ export default function DashboardPage() {
         </Reveal>
       </Container>
 
-      {/* Detail drawer */}
       <Drawer
         anchor="right"
         open={!!selected}
@@ -353,7 +351,7 @@ export default function DashboardPage() {
               </IconButton>
             </Stack>
             <Typography variant="h6">{selected.school}</Typography>
-            <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
+            <Stack direction="row" spacing={1} sx={{ mt: 1.5 }} flexWrap="wrap" useFlexGap>
               <SeverityChip severity={selected.severity} />
               <StatusChip status={selected.status} />
               <Chip
@@ -361,16 +359,16 @@ export default function DashboardPage() {
                 size="small"
                 variant="outlined"
               />
+              {selected.referredToLe && (
+                <Chip icon={<GavelRoundedIcon />} label="Referred to LE" size="small" color="error" variant="outlined" />
+              )}
             </Stack>
 
             <Divider sx={{ my: 2 }} />
 
             <Field label="Concern types" value={selected.types.join(", ")} />
             <Field label="Assigned to" value={selected.assignedTo} />
-            <Field
-              label="Submitted"
-              value={new Date(selected.submitted).toLocaleString()}
-            />
+            <Field label="Submitted" value={new Date(selected.submitted).toLocaleString()} />
             <Box sx={{ mt: 1.5 }}>
               <Typography variant="caption" color="text.secondary">
                 Summary

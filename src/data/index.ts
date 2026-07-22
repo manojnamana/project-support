@@ -1,14 +1,9 @@
 // Central dummy-data module for Project SUPPORT.
 // All data here is fictional and for demonstration purposes only.
 
-export type Severity = "Low" | "Moderate" | "High" | "Emergency";
-export type ReportStatus =
-  | "Open"
-  | "Under Review"
-  | "Referred"
-  | "Action Taken"
-  | "Resolved"
-  | "Closed";
+import type { CaseStatus, Severity } from "@/lib/statusDisplay";
+
+export type { CaseStatus, Severity };
 
 export interface SchoolOption {
   id: string;
@@ -59,11 +54,13 @@ export interface Report {
   school: string;
   types: string[];
   severity: Severity;
-  status: ReportStatus;
+  status: CaseStatus;
   submitted: string;
   anonymous: boolean;
   summary: string;
   assignedTo: string;
+  referredToLe?: boolean;
+  hasIntervention?: boolean;
   timeline: TimelineEntry[];
   messages: CaseMessage[];
 }
@@ -104,28 +101,28 @@ export const CONCERN_TYPES: ConcernType[] = [
 
 export const URGENCY_LEVELS: UrgencyLevel[] = [
   {
-    value: "Low",
+    value: "low",
     title: "Low",
     color: "success",
     helper: "Not an immediate concern",
     examples: ["Ongoing bullying", "Harassment", "Rumors", "Non-immediate concerns"],
   },
   {
-    value: "Moderate",
+    value: "moderate",
     title: "Moderate",
     color: "info",
     helper: "Should be reviewed soon",
     examples: ["Threatening statements", "Escalating conflicts", "Repeated targeting"],
   },
   {
-    value: "High",
+    value: "high",
     title: "High",
     color: "warning",
     helper: "Needs prompt attention",
     examples: ["Specific threat", "Weapon mentioned", "Physical assault", "Suicide threat"],
   },
   {
-    value: "Emergency",
+    value: "emergency",
     title: "Emergency",
     color: "error",
     helper: "Happening right now — call 911",
@@ -221,8 +218,8 @@ export const REPORTS: Report[] = [
     schoolId: "mnprep",
     school: "MN Prep Academy",
     types: ["Bullying"],
-    severity: "Low",
-    status: "Open",
+    severity: "low",
+    status: "received",
     submitted: "2026-07-14T09:12:00",
     anonymous: true,
     summary:
@@ -251,8 +248,8 @@ export const REPORTS: Report[] = [
     schoolId: "mnprep",
     school: "MN Prep Academy",
     types: ["Threat of Violence", "Social Media Threat"],
-    severity: "High",
-    status: "Under Review",
+    severity: "high",
+    status: "triage",
     submitted: "2026-07-15T14:40:00",
     anonymous: false,
     summary:
@@ -300,8 +297,9 @@ export const REPORTS: Report[] = [
     schoolId: "mnprep",
     school: "MN Prep Academy",
     types: ["Weapon Concern"],
-    severity: "Emergency",
-    status: "Referred",
+    severity: "emergency",
+    status: "management",
+    referredToLe: true,
     submitted: "2026-07-16T08:05:00",
     anonymous: true,
     summary:
@@ -336,8 +334,9 @@ export const REPORTS: Report[] = [
     schoolId: "north",
     school: "North Star High School",
     types: ["Self-Harm Concern"],
-    severity: "High",
-    status: "Action Taken",
+    severity: "high",
+    status: "management",
+    hasIntervention: true,
     submitted: "2026-07-13T11:25:00",
     anonymous: false,
     summary:
@@ -366,8 +365,8 @@ export const REPORTS: Report[] = [
     schoolId: "cedar",
     school: "Cedar Ridge High School",
     types: ["Cyberbullying", "Harassment"],
-    severity: "Moderate",
-    status: "Resolved",
+    severity: "moderate",
+    status: "resolved",
     submitted: "2026-07-10T15:55:00",
     anonymous: true,
     summary:
@@ -402,8 +401,8 @@ export const REPORTS: Report[] = [
     schoolId: "willow",
     school: "Willow Creek Middle School",
     types: ["Hate / Bias Incident"],
-    severity: "Moderate",
-    status: "Under Review",
+    severity: "moderate",
+    status: "assessment",
     submitted: "2026-07-16T13:10:00",
     anonymous: true,
     summary:

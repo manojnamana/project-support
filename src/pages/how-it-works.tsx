@@ -158,7 +158,7 @@ export default function HowItWorks() {
                             borderRadius: "50%",
                             display: "grid",
                             placeItems: "center",
-                            color: "text.primary",
+                            color: "common.white",
                             fontWeight: 800,
                             bgcolor: "primary.main",
                           }}

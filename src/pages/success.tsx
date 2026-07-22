@@ -21,8 +21,11 @@ import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import DoneRoundedIcon from "@mui/icons-material/DoneRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
+import { alpha } from "@mui/material/styles";
 
 import { ROUTING_RULES } from "@/data";
+
+const DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
 
 function CopyField({ label, value }: { label: string; value: string }) {
   const [copied, setCopied] = React.useState(false);
@@ -58,8 +61,9 @@ function CopyField({ label, value }: { label: string; value: string }) {
 
 export default function SuccessPage() {
   const router = useRouter();
-  const caseNumber = (router.query.case as string) || "PSV-2026-00457";
-  const pin = (router.query.pin as string) || "7821";
+  // Real submissions pass ?case & ?pin. Fall back to demo values only in demo mode.
+  const caseNumber = (router.query.case as string) || (DEMO ? "PSV-2026-00457" : "");
+  const pin = (router.query.pin as string) || (DEMO ? "7821" : "");
 
   return (
     <Container maxWidth="sm" sx={{ py: { xs: 6, md: 10 } }}>
@@ -74,7 +78,7 @@ export default function SuccessPage() {
               display: "grid",
               placeItems: "center",
               color: "success.main",
-              bgcolor: (t) => `${t.palette.success.main}18`,
+              bgcolor: (t) => alpha(t.palette.success.main, 0.12),
               mb: 2,
             }}
           >
@@ -82,8 +86,8 @@ export default function SuccessPage() {
           </Box>
           <Typography variant="h4">Report submitted</Typography>
           <Typography color="text.secondary" sx={{ mt: 1 }}>
-            Thank you for helping keep your school community safe. Save the details below to
-            check status or answer follow-up questions.
+            Thank you for helping keep your school community safe. Save the details below to check status or answer
+            follow-up questions.
           </Typography>
         </Box>
       </Zoom>
@@ -98,9 +102,9 @@ export default function SuccessPage() {
           </Grid>
         </Grid>
 
-        <Alert severity="info" sx={{ mt: 2.5, borderRadius: 2 }}>
-          Keep your case number and PIN private. Together they let you check status and
-          respond to investigators — while staying anonymous.
+        <Alert severity="warning" sx={{ mt: 2.5, borderRadius: 2 }}>
+          Save your case number and PIN now — for your safety we can't show them again. Together they let you check
+          status and respond to investigators while staying anonymous.
         </Alert>
 
         <Divider sx={{ my: 3 }} />
@@ -114,12 +118,7 @@ export default function SuccessPage() {
               justifyContent="space-between"
               alignItems="center"
               spacing={2}
-              sx={{
-                p: 1.25,
-                border: "1px solid",
-                borderColor: "divider",
-                borderRadius: 2,
-              }}
+              sx={{ p: 1.25, border: "1px solid", borderColor: "divider", borderRadius: 2 }}
             >
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
                 {r.category}

@@ -390,7 +390,7 @@ export default function ReportPage() {
                       );
                     })}
                   </Stack>
-                  {form.urgency === "Emergency" && (
+                  {form.urgency === "emergency" && (
                     <Box sx={{ mt: 2 }}>
                       <EmergencyBanner />
                     </Box>
