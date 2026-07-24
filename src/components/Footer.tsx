@@ -41,6 +41,9 @@ export default function Footer() {
               <MuiLink component={Link} href="/how-it-works" color="inherit">
                 How It Works
               </MuiLink>
+              <MuiLink component={Link} href="/resources" color="inherit">
+                Resources
+              </MuiLink>
               <MuiLink component={Link} href="/dashboard" color="inherit">
                 Admin Dashboard
               </MuiLink>

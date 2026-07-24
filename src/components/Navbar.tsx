@@ -24,6 +24,7 @@ const NAV_LINKS = [
   { label: "Report a Concern", href: "/report" },
   { label: "Check Status", href: "/status" },
   { label: "How It Works", href: "/how-it-works" },
+  { label: "Resources", href: "/resources" },
   { label: "Admin", href: "/dashboard" },
 ];
 
