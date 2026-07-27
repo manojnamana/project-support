@@ -1,5 +1,12 @@
 import * as React from "react";
-import { Autocomplete, Box, TextField, Typography } from "@mui/material";
+import {
+  Autocomplete,
+  Box,
+  CircularProgress,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 
 export interface AutocompleteOption {
   value: string;
@@ -21,6 +28,7 @@ interface ScrollableAutocompleteProps {
   helperText?: string;
   error?: boolean;
   required?: boolean;
+  loading?: boolean;
 }
 
 export default function ScrollableAutocomplete({
@@ -32,12 +40,28 @@ export default function ScrollableAutocomplete({
   helperText,
   error,
   required,
+  loading = false,
 }: ScrollableAutocompleteProps) {
   return (
     <Autocomplete
       value={value}
       onChange={(_, next) => onChange(next)}
       options={options}
+      loading={loading}
+      loadingText={
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="center"
+          spacing={1.5}
+          sx={{ py: 1.5 }}
+        >
+          <CircularProgress size={18} />
+          <Typography variant="body2" color="text.secondary">
+            Loading options…
+          </Typography>
+        </Stack>
+      }
       isOptionEqualToValue={(a, b) => a.value === b.value}
       getOptionLabel={(o) => o.label}
       slotProps={{
@@ -82,6 +106,17 @@ export default function ScrollableAutocomplete({
           helperText={helperText}
           error={error}
           required={required}
+          InputProps={{
+            ...params.InputProps,
+            endAdornment: (
+              <>
+                {loading ? (
+                  <CircularProgress color="inherit" size={18} sx={{ mr: 1 }} />
+                ) : null}
+                {params.InputProps.endAdornment}
+              </>
+            ),
+          }}
         />
       )}
     />

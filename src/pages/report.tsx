@@ -40,12 +40,11 @@ import ScrollableAutocomplete, {
 import Reveal from "@/components/Reveal";
 import {
   CONCERN_PROMPTS,
-  CONCERN_TYPES,
   EVIDENCE_TYPES,
-  SCHOOLS,
   URGENCY_LEVELS,
-  type Severity,
 } from "@/data";
+import { ConcernType, SchoolOption, Severity } from "@/types/types";
+import { GetPublicConcerns, GetPublicSchools } from "@/services/getapis";
 
 const STEPS = [
   "School",
@@ -56,17 +55,24 @@ const STEPS = [
   "Contact",
 ];
 
+const OTHER_CONCERN: ConcernType = {
+  id: "other",
+  name: "Other",
+  slug: "other",
+  description: "A concern not listed above",
+};
+
 function normalizeConcernText(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 /** Returns a listed concern type when free-text matches its label (excluding "Other"). */
-function findMatchingConcernType(text: string) {
+function findMatchingConcernType(text: string, concerns: ConcernType[]) {
   const normalized = normalizeConcernText(text);
   if (!normalized) return null;
   return (
-    CONCERN_TYPES.find(
-      (c) => c.id !== "other" && normalizeConcernText(c.label) === normalized
+    concerns.find(
+      (c) => c.slug !== "other" && normalizeConcernText(c.name) === normalized
     ) ?? null
   );
 }
@@ -99,11 +105,7 @@ interface FormState {
   anonymous: boolean;
 }
 
-const schoolOptions: AutocompleteOption[] = SCHOOLS.map((s) => ({
-  value: s.id,
-  label: s.name,
-  caption: s.district === "—" ? "Not listed" : s.district,
-}));
+
 
 function makeCaseNumber() {
   const n = 463 + Math.floor(Math.random() * 500);
@@ -133,6 +135,81 @@ export default function ReportPage() {
     open: boolean;
     message: string;
   }>({ open: false, message: "" });
+  const [publicSchools, setPublicSchools] = React.useState<SchoolOption[]>([]);
+  const [loadingSchools, setLoadingSchools] = React.useState(false);
+  const [publicConcerns, setPublicConcerns] = React.useState<ConcernType[]>([]);
+  const [loadingConcerns, setLoadingConcerns] = React.useState(true);
+  const [questions, setQuestions] = React.useState<any[]>([]);
+  const [loadingQuestions, setLoadingQuestions] = React.useState(false);
+
+  const schoolOptions: AutocompleteOption[] = publicSchools.map((s) => ({
+    value: s.id,
+    label: s.name,
+    caption: s.city === "—" ? "Not listed" : s.city,
+  }));
+
+  const concernOptions = React.useMemo(() => {
+    const hasOther = publicConcerns.some((c) => c.slug === "other");
+    return hasOther ? publicConcerns : [...publicConcerns, OTHER_CONCERN];
+  }, [publicConcerns]);
+
+  const fetchPublicSchools = async ()=>{
+    setLoadingSchools(true);
+    try{
+      const response = await GetPublicSchools();
+      if((response as any).status === 200 || (response as any).status === 201){
+        setPublicSchools((response as any).data as SchoolOption[]);
+      }
+      else{
+        setSnackbar({
+          open: true,
+          message: (response as any).data.message as string,
+        });
+      }
+    }
+    catch(error){
+      console.log(error);
+      setSnackbar({
+        open: true,
+        message: "Error fetching public schools",
+      });
+    }
+    finally{
+      setLoadingSchools(false);
+    }
+  }
+  const fetchPublicConcerns = async ()=>{
+    setLoadingConcerns(true);
+    try{
+      const response = await GetPublicConcerns();
+      if((response as any).status === 200 || (response as any).status === 201){
+        setPublicConcerns((response as any).data as ConcernType[]);
+      }
+      else{
+        setSnackbar({
+          open: true,
+          message: (response as any).data.message as string,
+        });
+      }
+    }
+    catch(error){
+      console.log(error);
+      setSnackbar({
+        open: true,
+        message: "Error fetching public concerns",
+      });
+    }
+    finally{
+      setLoadingConcerns(false);
+    }
+  }
+  
+
+  React.useEffect(()=>{
+    fetchPublicConcerns()
+
+    fetchPublicSchools();
+  }, []);
 
   // Preselect anonymity based on the entry CTA (?mode=anonymous|contact).
   React.useEffect(() => {
@@ -149,11 +226,11 @@ export default function ReportPage() {
 
   const handleOtherConcernChange = (value: string) => {
     set("otherConcern", value);
-    const match = findMatchingConcernType(value);
+    const match = findMatchingConcernType(value, concernOptions);
     if (match) {
       setSnackbar({
         open: true,
-        message: `"${match.label}" is already listed. Please select it from the options above instead of Other.`,
+        message: `"${match.name}" is already listed. Please select it from the options above instead of Other.`,
       });
     }
   };
@@ -183,7 +260,7 @@ export default function ReportPage() {
     form.school?.value === "other-school" || form.school?.value === "other-area";
   const isOtherConcern = form.concerns.includes("other");
   const otherConcernMatchesExisting = Boolean(
-    isOtherConcern && findMatchingConcernType(form.otherConcern)
+    isOtherConcern && findMatchingConcernType(form.otherConcern, concernOptions)
   );
 
   const canContinue = () => {
@@ -260,6 +337,7 @@ export default function ReportPage() {
                     value={form.school}
                     onChange={(v) => set("school", v)}
                     options={schoolOptions}
+                    loading={loadingSchools}
                     placeholder="Search schools…"
                     required
                     helperText="Choose the closest match, or pick an 'Other…' option."
@@ -289,37 +367,49 @@ export default function ReportPage() {
                     caption="Select all that apply."
                   />
                   <Grid container spacing={1.5}>
-                    {CONCERN_TYPES.map((c) => {
-                      const checked = form.concerns.includes(c.id);
-                      return (
-                        <Grid size={{ xs: 12, sm: 6 }} key={c.id}>
-                          <Card
-                            onClick={() => toggleConcern(c.id)}
-                            sx={{
-                              cursor: "pointer",
-                              borderColor: checked ? "primary.main" : "divider",
-                              bgcolor: (t) =>
-                                checked ? `${t.palette.primary.main}0A` : "transparent",
-                              "&:hover": { borderColor: "primary.main" },
-                            }}
-                          >
-                            <CardContent
-                              sx={{ display: "flex", alignItems: "center", gap: 1, py: 1.25, "&:last-child": { pb: 1.25 } }}
+                    {loadingConcerns ? (
+                      <Typography variant="body2" color="text.secondary">
+                        Loading concerns...
+                      </Typography>
+                    ) : (
+                      concernOptions.map((c) => {
+                        const checked = form.concerns.includes(c.slug);
+                        return (
+                          <Grid size={{ xs: 12, sm: 6 }} key={c.slug}>
+                            <Card
+                              onClick={() => toggleConcern(c.slug)}
+                              sx={{
+                                cursor: "pointer",
+                                borderColor: checked ? "primary.main" : "divider",
+                                bgcolor: (t) =>
+                                  checked ? `${t.palette.primary.main}0A` : "transparent",
+                                "&:hover": { borderColor: "primary.main" },
+                              }}
                             >
-                              <Checkbox checked={checked} tabIndex={-1} disableRipple />
-                              <Box>
-                                <Typography sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                                  {c.label}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  {c.description}
-                                </Typography>
-                              </Box>
-                            </CardContent>
-                          </Card>
-                        </Grid>
-                      );
-                    })}
+                              <CardContent
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                  py: 1.25,
+                                  "&:last-child": { pb: 1.25 },
+                                }}
+                              >
+                                <Checkbox checked={checked} tabIndex={-1} disableRipple />
+                                <Box>
+                                  <Typography sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                                    {c.name}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary">
+                                    {c.description}
+                                  </Typography>
+                                </Box>
+                              </CardContent>
+                            </Card>
+                          </Grid>
+                        );
+                      })
+                    )}
                   </Grid>
                   {isOtherConcern && (
                     <Fade in>
@@ -561,7 +651,7 @@ export default function ReportPage() {
                     </Grid>
                   </Grid>
 
-                  <ReviewSummary form={form} />
+                  <ReviewSummary form={form} concerns={concernOptions} />
                 </Box>
               </Fade>
             )}
@@ -621,18 +711,19 @@ function StepHeading({ title, caption }: { title: string; caption: string }) {
   );
 }
 
-function ReviewSummary({ form }: { form: FormState }) {
-  const concernLabels = CONCERN_TYPES.filter((c) => form.concerns.includes(c.id)).map(
-    (c) =>
-      c.id === "other" && form.otherConcern.trim()
+function ReviewSummary({ form, concerns }: { form: FormState; concerns: ConcernType[] }) {
+  const concernLabels = concerns
+    .filter((c) => form.concerns.includes(c.slug))
+    .map((c) =>
+      c.slug === "other" && form.otherConcern.trim()
         ? `Other (${form.otherConcern.trim()})`
-        : c.label
-  );
+        : c.name
+    );
   const rows: { label: string; value: string }[] = [
     {
       label: "Location",
       value:
-        (form.school?.label ?? "—") +
+        (form.school?.value ?? "—") +
         (form.otherLocation ? ` · ${form.otherLocation}` : ""),
     },
     { label: "Concern(s)", value: concernLabels.join(", ") || "—" },
