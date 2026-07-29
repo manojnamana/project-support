@@ -83,3 +83,40 @@ export interface Report {
   timeline: TimelineEntry[];
   messages: CaseMessage[];
 }
+
+export interface StaffSchool {
+  id: number;
+  name: string;
+  school_code: string;
+}
+
+export interface StaffPermissions {
+  is_staff: boolean;
+  is_superuser: boolean;
+  is_response_team: boolean;
+  is_clinical_reviewer: boolean;
+}
+
+export interface StaffUser {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string | null;
+  designation: string;
+  role: string;
+  school: StaffSchool | null;
+  permissions: StaffPermissions;
+}
+
+export interface StaffAuthTokens {
+  refresh: string;
+  access: string;
+}
+
+export interface StaffLoginResponse {
+  success: boolean;
+  message: string;
+  tokens: StaffAuthTokens;
+  user: StaffUser;
+}

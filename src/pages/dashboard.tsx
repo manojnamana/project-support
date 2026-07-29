@@ -24,8 +24,6 @@ import InboxRoundedIcon from "@mui/icons-material/InboxRounded";
 import ReportProblemRoundedIcon from "@mui/icons-material/ReportProblemRounded";
 import PendingActionsRoundedIcon from "@mui/icons-material/PendingActionsRounded";
 import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
-import LockRoundedIcon from "@mui/icons-material/LockRounded";
-import LoginRoundedIcon from "@mui/icons-material/LoginRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
@@ -45,8 +43,13 @@ import {
   type CaseStatus,
 } from "@/lib/statusDisplay";
 import { REPORTS, SCHOOLS, type Report } from "@/data";
-
-const DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
+import {
+  clearAuthSession,
+  getStaffDisplayName,
+  getStaffUser,
+} from "@/services/auth";
+import type { StaffUser } from "@/types/types";
+import { useRouter } from "next/router";
 
 const schoolFilterOptions = [
   { value: "all", label: "All schools" },
@@ -57,67 +60,27 @@ const schoolFilterOptions = [
   })),
 ];
 
-function LoginGate({ onLogin }: { onLogin: () => void }) {
-  const [email, setEmail] = React.useState(DEMO ? "coordinator@projectsupport.org" : "");
-  const [password, setPassword] = React.useState("");
-  return (
-    <Container maxWidth="xs" sx={{ py: { xs: 8, md: 12 } }}>
-      <Reveal>
-        <Card sx={{ p: { xs: 3, md: 4 } }}>
-          <Stack alignItems="center" spacing={1} sx={{ mb: 3 }}>
-            <Box
-              sx={{
-                width: 56,
-                height: 56,
-                borderRadius: 2,
-                display: "grid",
-                placeItems: "center",
-                bgcolor: "primary.main",
-                color: "primary.contrastText",
-              }}
-            >
-              <LockRoundedIcon />
-            </Box>
-            <Typography variant="h5">Administrative Dashboard</Typography>
-            <Typography variant="body2" color="text.secondary" textAlign="center">
-              Restricted access for authorized personnel only.
-            </Typography>
-          </Stack>
-          <Stack spacing={2}>
-            <TextField label="Work email" fullWidth value={email} onChange={(e) => setEmail(e.target.value)} />
-            <TextField
-              label="Password"
-              type="password"
-              fullWidth
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <Button variant="contained" size="large" startIcon={<LoginRoundedIcon />} onClick={onLogin}>
-              Sign in
-            </Button>
-          </Stack>
-          {DEMO && (
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ display: "block", mt: 2, textAlign: "center" }}
-            >
-              Demo mode — any password grants access.
-            </Typography>
-          )}
-        </Card>
-      </Reveal>
-    </Container>
-  );
-}
-
 export default function DashboardPage() {
-  const [authed, setAuthed] = React.useState(false);
+  const router = useRouter();
+  const [user, setUser] = React.useState<StaffUser | null>(null);
   const [school, setSchool] = React.useState("all");
   const [status, setStatus] = React.useState("all");
   const [severity, setSeverity] = React.useState("all");
   const [query, setQuery] = React.useState("");
   const [selected, setSelected] = React.useState<Report | null>(null);
+
+  React.useEffect(() => {
+    setUser(getStaffUser());
+  }, []);
+
+  const handleLogout = () => {
+    clearAuthSession();
+    void router.replace("/login");
+  };
+
+  const displayName = getStaffDisplayName(user);
+  const roleLabel = user?.role || "Administrator";
+  const schoolLabel = user?.school?.name;
 
   const filtered = React.useMemo(() => {
     return REPORTS.filter((r) => {
@@ -147,23 +110,35 @@ export default function DashboardPage() {
     []
   );
 
-  if (!authed) return <LoginGate onLogin={() => setAuthed(true)} />;
-
   return (
     <Box sx={{ pb: 6 }}>
       <PageHeader
-        eyebrow="Project SUPPORT Administrator"
+        eyebrow={roleLabel}
         title="Incoming Reports Queue"
-        subtitle="Review, triage, and act on incoming safety reports."
+        subtitle={
+          schoolLabel
+            ? `${displayName} · ${schoolLabel}`
+            : `Signed in as ${displayName}. Review, triage, and act on incoming safety reports.`
+        }
         action={
-          <Button
-            variant="outlined"
-            startIcon={<LogoutRoundedIcon />}
-            onClick={() => setAuthed(false)}
-            sx={{ color: "primary.contrastText", borderColor: "primary.contrastText" }}
-          >
-            Sign out
-          </Button>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Box sx={{ display: { xs: "none", sm: "block" }, textAlign: "right" }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: "primary.contrastText" }}>
+                {displayName}
+              </Typography>
+              <Typography variant="caption" sx={{ color: "primary.contrastText", opacity: 0.8 }}>
+                {user?.email || roleLabel}
+              </Typography>
+            </Box>
+            <Button
+              variant="outlined"
+              startIcon={<LogoutRoundedIcon />}
+              onClick={handleLogout}
+              sx={{ color: "primary.contrastText", borderColor: "primary.contrastText" }}
+            >
+              Sign out
+            </Button>
+          </Stack>
         }
       />
 
