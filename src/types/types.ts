@@ -46,6 +46,25 @@ export interface CaseMessage {
   text: string;
 }
 
+/** Concern type entries from the case status API — plain slug or an "other" object. */
+export type CaseTypeEntry = string | { other: string };
+
+export interface CaseStatusData {
+  id: string;
+  case_number: string;
+  schoolId: string;
+  school: string;
+  types: CaseTypeEntry[];
+  severity: Severity;
+  status: CaseStatus;
+  submitted: string;
+  anonymous: boolean;
+  summary: string;
+  assignedTo: string;
+  timeline: TimelineEntry[];
+  messages: CaseMessage[];
+}
+
 export interface Report {
   id: string;
   caseNumber: string;

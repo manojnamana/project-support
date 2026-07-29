@@ -6,6 +6,7 @@ import {
   Button,
   Card,
   Chip,
+  CircularProgress,
   Container,
   Divider,
   Fade,
@@ -29,16 +30,39 @@ import {
   INVESTIGATION_STEPS,
   STATUS_STEP_INDEX,
 } from "@/lib/statusDisplay";
-import { getReportByCase, type CaseMessage, type Report } from "@/data";
+import {
+  type CaseMessage,
+  type CaseStatusData,
+  type CaseTypeEntry,
+} from "@/types/types";
+import { GetCaseStatus } from "@/services/getapis";
 
-const DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
+function formatCaseType(entry: CaseTypeEntry): string {
+  if (typeof entry === "string") return entry;
+  return entry.other ? `Other (${entry.other})` : "Other";
+}
+
+function mapCaseStatus(data: CaseStatusData) {
+  return {
+    caseNumber: data.case_number,
+    school: data.school,
+    types: (data.types ?? []).map(formatCaseType),
+    severity: data.severity,
+    status: data.status,
+    timeline: data.timeline ?? [],
+    messages: data.messages ?? [],
+  };
+}
+
+type StatusReport = ReturnType<typeof mapCaseStatus>;
 
 export default function StatusPage() {
   const router = useRouter();
   const [caseNumber, setCaseNumber] = React.useState("");
   const [pin, setPin] = React.useState("");
-  const [report, setReport] = React.useState<Report | null>(null);
+  const [report, setReport] = React.useState<StatusReport | null>(null);
   const [error, setError] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
   const [thread, setThread] = React.useState<CaseMessage[]>([]);
   const [reply, setReply] = React.useState("");
 
@@ -48,15 +72,45 @@ export default function StatusPage() {
     }
   }, [router.isReady, router.query.case]);
 
-  const lookup = () => {
-    const found = getReportByCase(caseNumber, pin);
-    if (found) {
-      setReport(found);
-      setThread(found.messages);
-      setError("");
-    } else {
+  const lookup = async () => {
+    if (!caseNumber.trim() || !pin.trim()) {
+      setError("Enter both case number and PIN.");
       setReport(null);
-      setError("No report matches that case number and PIN. Please check and try again.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setReport(null);
+    setThread([]);
+
+    try {
+      const response = await GetCaseStatus(caseNumber.trim(), pin.trim());
+      const axiosRes = response as {
+        status?: number;
+        data?: { success?: boolean; message?: string; data?: CaseStatusData };
+        response?: { data?: { message?: string } };
+      };
+
+      if (axiosRes.status === 200 || axiosRes.status === 201) {
+        const body = axiosRes.data;
+        if (body?.success && body.data) {
+          const mapped = mapCaseStatus(body.data);
+          setReport(mapped);
+          setThread(mapped.messages);
+        } else {
+          setError(body?.message || "No report matches that case number and PIN.");
+        }
+      } else {
+        setError(
+          axiosRes.response?.data?.message ||
+            "No report matches that case number and PIN. Please check and try again."
+        );
+      }
+    } catch {
+      setError("Unable to look up case status. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -96,9 +150,13 @@ export default function StatusPage() {
                 <TextField
                   fullWidth
                   label="Case number"
-                  placeholder="PSV-2026-00458"
+                  placeholder="CASE-05ODQ2W2"
                   value={caseNumber}
                   onChange={(e) => setCaseNumber(e.target.value)}
+                  disabled={loading}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") void lookup();
+                  }}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>
@@ -108,6 +166,10 @@ export default function StatusPage() {
                   placeholder="0000"
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
+                  disabled={loading}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") void lookup();
+                  }}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 3 }}>
@@ -115,19 +177,21 @@ export default function StatusPage() {
                   fullWidth
                   size="large"
                   variant="contained"
-                  onClick={lookup}
-                  startIcon={<SearchRoundedIcon />}
+                  onClick={() => void lookup()}
+                  disabled={loading}
+                  startIcon={
+                    loading ? (
+                      <CircularProgress size={18} color="inherit" />
+                    ) : (
+                      <SearchRoundedIcon />
+                    )
+                  }
                   sx={{ height: 56 }}
                 >
-                  Look up
+                  {loading ? "Looking up…" : "Look up"}
                 </Button>
               </Grid>
             </Grid>
-            {DEMO && (
-              <Alert severity="info" variant="outlined" sx={{ mt: 2, borderRadius: 2 }}>
-                Demo credentials — case <strong>PSV-2026-00458</strong> with PIN <strong>3049</strong>.
-              </Alert>
-            )}
             {error && (
               <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>
                 {error}
@@ -136,7 +200,18 @@ export default function StatusPage() {
           </Card>
         </Reveal>
 
-        {report && (
+        {loading && (
+          <Card sx={{ p: 4, mt: 3 }}>
+            <Stack alignItems="center" spacing={2}>
+              <CircularProgress size={36} />
+              <Typography variant="body2" color="text.secondary">
+                Retrieving case status…
+              </Typography>
+            </Stack>
+          </Card>
+        )}
+
+        {report && !loading && (
           <Fade in>
             <Box sx={{ mt: 3 }}>
               <Card sx={{ p: { xs: 2, md: 3 }, mb: 3 }}>
@@ -153,7 +228,6 @@ export default function StatusPage() {
                     </Stack>
                   </Box>
                   <Stack spacing={1} alignItems={{ xs: "flex-start", sm: "flex-end" }}>
-                    {/* reporter sees the reduced public vocabulary */}
                     <StatusChip status={report.status} audience="public" />
                     <SeverityChip severity={report.severity} />
                   </Stack>
@@ -218,8 +292,6 @@ export default function StatusPage() {
                               borderRadius: 3,
                               borderTopRightRadius: mine ? 4 : 12,
                               borderTopLeftRadius: mine ? 12 : 4,
-                              // contrast-safe: reporter bubble uses primary + contrastText,
-                              // investigator bubble uses a subtle surface + normal text.
                               bgcolor: mine ? "primary.main" : "action.hover",
                               color: mine ? "primary.contrastText" : "text.primary",
                             }}

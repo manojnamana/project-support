@@ -16,7 +16,7 @@
 # next.js
 /.next/
 /out/
-document.docx
+dummy.json
 
 # production
 /build
