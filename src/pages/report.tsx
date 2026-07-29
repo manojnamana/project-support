@@ -7,6 +7,7 @@ import {
   CardContent,
   Checkbox,
   Chip,
+  CircularProgress,
   Container,
   Fade,
   FormControlLabel,
@@ -44,7 +45,11 @@ import {
   URGENCY_LEVELS,
 } from "@/data";
 import { ConcernType, SchoolOption, Severity } from "@/types/types";
-import { GetPublicConcerns, GetPublicSchools } from "@/services/getapis";
+import {
+  GetPublicConcerns,
+  GetPublicSchools,
+  GetQuestionsBasedOnConcern,
+} from "@/services/getapis";
 
 const STEPS = [
   "School",
@@ -62,6 +67,11 @@ const OTHER_CONCERN: ConcernType = {
   description: "A concern not listed above",
 };
 
+interface ConcernQuestion {
+  id: string;
+  text: string;
+}
+
 function normalizeConcernText(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
@@ -76,6 +86,50 @@ function findMatchingConcernType(text: string, concerns: ConcernType[]) {
     ) ?? null
   );
 }
+
+function normalizeQuestions(payload: unknown): ConcernQuestion[] {
+  const list = Array.isArray(payload)
+    ? payload
+    : payload &&
+        typeof payload === "object" &&
+        Array.isArray((payload as { data?: unknown }).data)
+      ? (payload as { data: unknown[] }).data
+      : [];
+
+  const seen = new Set<string>();
+  const questions: ConcernQuestion[] = [];
+
+  list.forEach((item, index) => {
+    if (typeof item === "string") {
+      const text = item.trim();
+      if (!text || seen.has(text)) return;
+      seen.add(text);
+      questions.push({ id: `q-${index}`, text });
+      return;
+    }
+
+    if (!item || typeof item !== "object") return;
+    const row = item as Record<string, unknown>;
+    const text = [row.text, row.question, row.prompt, row.label, row.title]
+      .find((v) => typeof v === "string" && v.trim())
+      ?.toString()
+      .trim();
+    if (!text || seen.has(text)) return;
+    seen.add(text);
+    const id =
+      typeof row.id === "string" || typeof row.id === "number"
+        ? String(row.id)
+        : `q-${index}`;
+    questions.push({ id, text });
+  });
+
+  return questions;
+}
+
+const FALLBACK_QUESTIONS: ConcernQuestion[] = CONCERN_PROMPTS.map((text, i) => ({
+  id: `prompt-${i}`,
+  text,
+}));
 
 const SolidConnector = styled(StepConnector)(({ theme }) => ({
   [`&.${stepConnectorClasses.active} .${stepConnectorClasses.line}, &.${stepConnectorClasses.completed} .${stepConnectorClasses.line}`]:
@@ -97,7 +151,7 @@ interface FormState {
   concerns: string[];
   otherConcern: string;
   urgency: Severity | "";
-  description: string;
+  answers: Record<string, string>;
   evidence: string[];
   name: string;
   email: string;
@@ -124,7 +178,7 @@ export default function ReportPage() {
     concerns: [],
     otherConcern: "",
     urgency: "",
-    description: "",
+    answers: {},
     evidence: [],
     name: "",
     email: "",
@@ -139,7 +193,7 @@ export default function ReportPage() {
   const [loadingSchools, setLoadingSchools] = React.useState(false);
   const [publicConcerns, setPublicConcerns] = React.useState<ConcernType[]>([]);
   const [loadingConcerns, setLoadingConcerns] = React.useState(true);
-  const [questions, setQuestions] = React.useState<any[]>([]);
+  const [questions, setQuestions] = React.useState<ConcernQuestion[]>([]);
   const [loadingQuestions, setLoadingQuestions] = React.useState(false);
 
   const schoolOptions: AutocompleteOption[] = publicSchools.map((s) => ({
@@ -203,13 +257,56 @@ export default function ReportPage() {
       setLoadingConcerns(false);
     }
   }
-  
+
+  const fetchQuestionsForConcerns = async (concernSlugs: string[]) => {
+    const slugs = concernSlugs.filter((slug) => slug && slug !== "other");
+    if (!slugs.length) {
+      setQuestions([]);
+      return;
+    }
+
+    setLoadingQuestions(true);
+    try {
+      const responses = await Promise.all(
+        slugs.map((slug) => GetQuestionsBasedOnConcern(slug))
+      );
+      const merged: ConcernQuestion[] = [];
+      const seen = new Set<string>();
+
+      responses.forEach((response) => {
+        const axiosRes = response as { status?: number; data?: unknown };
+        if (axiosRes.status !== 200 && axiosRes.status !== 201) return;
+        normalizeQuestions(axiosRes.data).forEach((q) => {
+          if (seen.has(q.text)) return;
+          seen.add(q.text);
+          merged.push(q);
+        });
+      });
+
+      setQuestions(merged);
+    } catch (error) {
+      console.log(error);
+      setSnackbar({
+        open: true,
+        message: "Error fetching concern questions",
+      });
+      setQuestions([]);
+    } finally {
+      setLoadingQuestions(false);
+    }
+  };
 
   React.useEffect(()=>{
     fetchPublicConcerns()
 
     fetchPublicSchools();
   }, []);
+
+  // Load concern-specific questions when the Details step is shown.
+  React.useEffect(() => {
+    if (activeStep !== 3) return;
+    void fetchQuestionsForConcerns(form.concerns);
+  }, [activeStep, form.concerns]);
 
   // Preselect anonymity based on the entry CTA (?mode=anonymous|contact).
   React.useEffect(() => {
@@ -219,8 +316,17 @@ export default function ReportPage() {
     }
   }, [router.isReady, router.query.mode]);
 
+  const detailQuestions =
+    questions.length > 0 ? questions : FALLBACK_QUESTIONS;
+
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
+
+  const setAnswer = (questionId: string, value: string) =>
+    setForm((f) => ({
+      ...f,
+      answers: { ...f.answers, [questionId]: value },
+    }));
 
   const closeSnackbar = () => setSnackbar((s) => ({ ...s, open: false }));
 
@@ -276,7 +382,11 @@ export default function ReportPage() {
       case 2:
         return form.urgency !== "";
       case 3:
-        return form.description.trim().length >= 10;
+        return (
+          !loadingQuestions &&
+          detailQuestions.length > 0 &&
+          detailQuestions.every((q) => (form.answers[q.id] ?? "").trim().length >= 2)
+        );
       default:
         return true;
     }
@@ -495,23 +605,35 @@ export default function ReportPage() {
                 <Box>
                   <StepHeading
                     title="Describe what happened"
-                    caption="Share as much detail as you can. Every detail helps."
+                    caption="Answer each question below. Every detail helps."
                   />
-                  <Stack direction="row" flexWrap="wrap" gap={0.75} sx={{ mb: 2 }}>
-                    {CONCERN_PROMPTS.map((q) => (
-                      <Chip key={q} label={q} size="small" variant="outlined" color="primary" />
-                    ))}
-                  </Stack>
-                  <TextField
-                    fullWidth
-                    multiline
-                    minRows={7}
-                    label="Details"
-                    placeholder="Who is involved? What happened? When and where did it happen? Is anyone in danger?"
-                    value={form.description}
-                    onChange={(e) => set("description", e.target.value)}
-                    helperText={`${form.description.length} characters — at least 10 required`}
-                  />
+                  {loadingQuestions ? (
+                    <Stack alignItems="center" spacing={1.5} sx={{ py: 4 }}>
+                      <CircularProgress size={28} />
+                      <Typography variant="body2" color="text.secondary">
+                        Loading questions…
+                      </Typography>
+                    </Stack>
+                  ) : (
+                    <Stack spacing={2.5}>
+                      {detailQuestions.map((q) => {
+                        const value = form.answers[q.id] ?? "";
+                        return (
+                          <TextField
+                            key={q.id}
+                            fullWidth
+                            multiline
+                            minRows={2}
+                            required
+                            label={q.text}
+                            placeholder="Type your answer…"
+                            value={value}
+                            onChange={(e) => setAnswer(q.id, e.target.value)}
+                          />
+                        );
+                      })}
+                    </Stack>
+                  )}
                 </Box>
               </Fade>
             )}

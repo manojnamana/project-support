@@ -196,7 +196,7 @@ export default function HowItWorks() {
               <CardContent sx={{ p: { xs: 3, md: 4 } }}>
                 <Grid container spacing={3} alignItems="center">
                   <Grid size={{ xs: 12, md: 7 }}>
-                    <Typography variant="h5">Who reviews reports?</Typography>
+                    <Typography variant="h5" color="common.white">Who reviews reports?</Typography>
                     <Typography color="common.white" sx={{ mt: 1 }}>
                       Only authorized personnel can access reports through the secure
                       administrative dashboard.
