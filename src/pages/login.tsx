@@ -37,6 +37,12 @@ export default function LoginPage() {
       ? router.query.next
       : "/dashboard";
 
+  const redirectAfterLogin = (path: string) => {
+    // Full navigation so middleware sees the freshly set auth cookies.
+    // Soft client navigations can race and leave the user stuck on /login.
+    window.location.assign(path);
+  };
+
   const handleLogin = async (event?: React.FormEvent) => {
     event?.preventDefault();
     if (!email.trim() || !password.trim()) {
@@ -78,7 +84,7 @@ export default function LoginPage() {
           setError("Unable to start demo session.");
           return;
         }
-        await router.replace(nextPath);
+        redirectAfterLogin(nextPath);
         return;
       }
 
@@ -95,7 +101,7 @@ export default function LoginPage() {
         return;
       }
 
-      await router.replace(nextPath);
+      redirectAfterLogin(nextPath);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const message =
