@@ -351,7 +351,7 @@ export default function StatusPage() {
                   </Stack>
                 )}
 
-                <Stack direction="row" spacing={1} sx={{ mt: 2.5 }}>
+                {/* <Stack direction="row" spacing={1} sx={{ mt: 2.5 }}>
                   <TextField
                     fullWidth
                     size="small"
@@ -370,7 +370,7 @@ export default function StatusPage() {
                   >
                     Send
                   </Button>
-                </Stack>
+                </Stack> */}
               </Card>
             </Box>
           </Fade>
