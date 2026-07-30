@@ -210,6 +210,13 @@ export default function DashboardPage() {
     };
   }, [status, severity, page, debouncedQuery, router, refreshKey]);
 
+  // Keep the open drawer in sync after dashboard refresh (e.g. status update).
+  React.useEffect(() => {
+    if (!selected) return;
+    const updated = cases.find((c) => c.id === selected.id);
+    if (updated) setSelected(updated);
+  }, [cases, selected?.id]);
+
   const handleLogout = () => {
     clearAuthSession();
     void router.replace("/login");
@@ -256,14 +263,7 @@ export default function DashboardPage() {
         const message =
           axiosRes.data?.message || "Case status updated successfully.";
         setUpdateSuccess(message);
-        setSelected((prev) =>
-          prev ? { ...prev, status: updateStatus } : prev
-        );
-        setCases((prev) =>
-          prev.map((c) =>
-            c.id === selected.id ? { ...c, status: updateStatus } : c
-          )
-        );
+        setRemarks("");
         setRefreshKey((k) => k + 1);
       } else if (axiosRes.response?.status === 401) {
         clearAuthSession();
@@ -557,6 +557,11 @@ export default function DashboardPage() {
             <Stack direction="row" spacing={1} sx={{ mt: 1.5 }} flexWrap="wrap" useFlexGap>
               <SeverityChip severity={selected.severity} />
               <StatusChip status={selected.status} />
+              <Chip
+                label={selected.anonymous ? "Anonymous" : "Contact provided"}
+                size="small"
+                variant="outlined"
+              />
             </Stack>
 
             <Divider sx={{ my: 2 }} />
@@ -566,9 +571,76 @@ export default function DashboardPage() {
               value={(selected.concern_types ?? []).map(formatConcernType).join(", ") || "—"}
             />
             <Field
+              label="Assigned to"
+              value={selected.assignedTo || "Unassigned"}
+            />
+            <Field
               label="Submitted"
               value={new Date(selected.submitted).toLocaleString()}
             />
+            {selected.last_activity_at && (
+              <Field
+                label="Last activity"
+                value={new Date(selected.last_activity_at).toLocaleString()}
+              />
+            )}
+            {selected.risk_level && (
+              <Field label="Risk level" value={selected.risk_level} />
+            )}
+
+            {selected.narrative && (
+              <Box sx={{ mt: 1.5 }}>
+                <Typography variant="caption" color="text.secondary">
+                  Narrative
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 0.5, whiteSpace: "pre-wrap" }}>
+                  {selected.narrative}
+                </Typography>
+              </Box>
+            )}
+
+            <Divider sx={{ my: 2 }} />
+
+            <Typography sx={{ fontWeight: 700, mb: 1.5 }}>Case timeline</Typography>
+            {(selected.timeline?.length ?? 0) === 0 ? (
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                No timeline events yet.
+              </Typography>
+            ) : (
+              <Stack spacing={0} sx={{ mb: 2 }}>
+                {(selected.timeline ?? []).map((entry, i, list) => (
+                  <Stack key={`${entry.label}-${entry.timestamp}-${i}`} direction="row" spacing={1.5}>
+                    <Stack alignItems="center">
+                      <Box
+                        sx={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: "50%",
+                          bgcolor: "primary.main",
+                          mt: 0.6,
+                        }}
+                      />
+                      {i < list.length - 1 && (
+                        <Box sx={{ width: 2, flexGrow: 1, bgcolor: "divider", my: 0.5 }} />
+                      )}
+                    </Stack>
+                    <Box sx={{ pb: 2 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {entry.label}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {entry.timestamp} · {entry.actor}
+                      </Typography>
+                      {entry.note && (
+                        <Typography variant="body2" sx={{ mt: 0.25 }}>
+                          {entry.note}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Stack>
+                ))}
+              </Stack>
+            )}
 
             <Divider sx={{ my: 2 }} />
 

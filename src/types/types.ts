@@ -65,7 +65,8 @@ export type CaseTypeEntry = string | { other: string };
 export interface CaseStatusData {
   id: string;
   case_number: string;
-  schoolId: string;
+  tenantslug?: string;
+  schoolId?: string;
   school: string;
   types: CaseTypeEntry[];
   severity: Severity;
@@ -158,11 +159,20 @@ export interface DashboardPagination {
 export interface DashboardCase {
   id: string;
   case_number: string;
+  tenantslug?: string;
   school: string;
   concern_types: CaseTypeEntry[];
   severity: Severity;
+  narrative?: string;
+  risk_level?: string | null;
+  assignedTo?: string;
   status: CaseStatus;
   submitted: string;
+  timeline?: TimelineEntry[];
+  messages?: CaseMessage[];
+  anonymous?: boolean;
+  created_at?: string;
+  last_activity_at?: string;
 }
 
 export interface DashboardData {

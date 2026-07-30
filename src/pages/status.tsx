@@ -49,6 +49,10 @@ function mapCaseStatus(data: CaseStatusData) {
     types: (data.types ?? []).map(formatCaseType),
     severity: data.severity,
     status: data.status,
+    submitted: data.submitted,
+    anonymous: Boolean(data.anonymous),
+    summary: data.summary?.trim() || "",
+    assignedTo: data.assignedTo || "Unassigned",
     timeline: data.timeline ?? [],
     messages: data.messages ?? [],
   };
@@ -225,6 +229,11 @@ export default function StatusPage() {
                       {report.types.map((t) => (
                         <Chip key={t} label={t} size="small" variant="outlined" />
                       ))}
+                      <Chip
+                        label={report.anonymous ? "Anonymous" : "Contact provided"}
+                        size="small"
+                        variant="outlined"
+                      />
                     </Stack>
                   </Box>
                   <Stack spacing={1} alignItems={{ xs: "flex-start", sm: "flex-end" }}>
@@ -233,7 +242,36 @@ export default function StatusPage() {
                   </Stack>
                 </Stack>
 
+                {report.summary && (
+                  <>
+                    <Divider sx={{ my: 2.5 }} />
+                    <Typography sx={{ fontWeight: 700, mb: 1 }}>Summary</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "pre-wrap" }}>
+                      {report.summary}
+                    </Typography>
+                  </>
+                )}
+
                 <Divider sx={{ my: 2.5 }} />
+
+                <Stack spacing={1} sx={{ mb: 2.5 }}>
+                  <Stack direction="row" justifyContent="space-between" spacing={2}>
+                    <Typography variant="body2" color="text.secondary">
+                      Submitted
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {new Date(report.submitted).toLocaleString()}
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between" spacing={2}>
+                    <Typography variant="body2" color="text.secondary">
+                      Assigned to
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {report.assignedTo}
+                    </Typography>
+                  </Stack>
+                </Stack>
 
                 <Typography sx={{ fontWeight: 700, mb: 2 }}>Investigation progress</Typography>
                 <Stepper activeStep={activeStepIndex} alternativeLabel sx={{ mb: 1 }}>
@@ -249,27 +287,33 @@ export default function StatusPage() {
                 <Divider sx={{ my: 2.5 }} />
 
                 <Typography sx={{ fontWeight: 700, mb: 1.5 }}>Timeline</Typography>
-                <Stack spacing={0}>
-                  {report.timeline.map((entry, i) => (
-                    <Stack key={i} direction="row" spacing={2}>
-                      <Stack alignItems="center">
-                        <Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: "primary.main", mt: 0.5 }} />
-                        {i < report.timeline.length - 1 && (
-                          <Box sx={{ width: 2, flexGrow: 1, bgcolor: "divider", my: 0.5 }} />
-                        )}
+                {(report.timeline?.length ?? 0) === 0 ? (
+                  <Typography variant="body2" color="text.secondary">
+                    No timeline events yet.
+                  </Typography>
+                ) : (
+                  <Stack spacing={0}>
+                    {report.timeline.map((entry, i) => (
+                      <Stack key={`${entry.label}-${entry.timestamp}-${i}`} direction="row" spacing={2}>
+                        <Stack alignItems="center">
+                          <Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: "primary.main", mt: 0.5 }} />
+                          {i < report.timeline.length - 1 && (
+                            <Box sx={{ width: 2, flexGrow: 1, bgcolor: "divider", my: 0.5 }} />
+                          )}
+                        </Stack>
+                        <Box sx={{ pb: 2 }}>
+                          <Typography sx={{ fontWeight: 600 }}>{entry.label}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {entry.timestamp} · {entry.actor}
+                          </Typography>
+                          <Typography variant="body2" sx={{ mt: 0.5 }}>
+                            {entry.note}
+                          </Typography>
+                        </Box>
                       </Stack>
-                      <Box sx={{ pb: 2 }}>
-                        <Typography sx={{ fontWeight: 600 }}>{entry.label}</Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {entry.timestamp} · {entry.actor}
-                        </Typography>
-                        <Typography variant="body2" sx={{ mt: 0.5 }}>
-                          {entry.note}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  ))}
-                </Stack>
+                    ))}
+                  </Stack>
+                )}
               </Card>
 
               <Card sx={{ p: { xs: 2, md: 3 } }}>
