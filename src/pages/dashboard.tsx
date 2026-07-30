@@ -40,6 +40,8 @@ import ScrollableSelect from "@/components/ScrollableSelect";
 import {
   STATUS_FILTER_OPTIONS,
   SEVERITY_FILTER_OPTIONS,
+  STAFF_STATUS_LABEL,
+  type CaseStatus,
 } from "@/lib/statusDisplay";
 import {
   clearAuthSession,
@@ -47,6 +49,7 @@ import {
   getStaffUser,
 } from "@/services/auth";
 import { GetDashboardData } from "@/services/getapis";
+import { UpdateCaseStatus } from "@/services/putapis";
 import type {
   CaseTypeEntry,
   DashboardCase,
@@ -60,6 +63,13 @@ function formatConcernType(entry: CaseTypeEntry): string {
   if (typeof entry === "string") return entry;
   return entry.other ? `Other (${entry.other})` : "Other";
 }
+
+const CASE_STATUS_OPTIONS = (Object.keys(STAFF_STATUS_LABEL) as CaseStatus[]).map(
+  (value) => ({
+    value,
+    label: STAFF_STATUS_LABEL[value],
+  })
+);
 
 const EMPTY_SUMMARY: DashboardSummary = {
   total_reports: 0,
@@ -92,10 +102,30 @@ export default function DashboardPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
   const [selected, setSelected] = React.useState<DashboardCase | null>(null);
+  const [refreshKey, setRefreshKey] = React.useState(0);
+  const [updateStatus, setUpdateStatus] = React.useState<CaseStatus>("received");
+  const [remarks, setRemarks] = React.useState("");
+  const [updatingStatus, setUpdatingStatus] = React.useState(false);
+  const [updateError, setUpdateError] = React.useState("");
+  const [updateSuccess, setUpdateSuccess] = React.useState("");
 
   React.useEffect(() => {
     setUser(getStaffUser());
   }, []);
+
+  React.useEffect(() => {
+    if (!selected) {
+      setUpdateStatus("received");
+      setRemarks("");
+      setUpdateError("");
+      setUpdateSuccess("");
+      return;
+    }
+    setUpdateStatus(selected.status);
+    setRemarks("");
+    setUpdateError("");
+    setUpdateSuccess("");
+  }, [selected]);
 
   React.useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -178,7 +208,7 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [status, severity, page, debouncedQuery, router]);
+  }, [status, severity, page, debouncedQuery, router, refreshKey]);
 
   const handleLogout = () => {
     clearAuthSession();
@@ -193,6 +223,63 @@ export default function DashboardPage() {
   const handleSeverityChange = (value: string) => {
     setSeverity(value);
     setPage(1);
+  };
+
+  const handleUpdateCaseStatus = async () => {
+    if (!selected) return;
+    if (!updateStatus) {
+      setUpdateError("Select a status.");
+      return;
+    }
+    if (!remarks.trim()) {
+      setUpdateError("Add a remark before updating status.");
+      return;
+    }
+
+    setUpdatingStatus(true);
+    setUpdateError("");
+    setUpdateSuccess("");
+
+    try {
+      const response = await UpdateCaseStatus(
+        selected.id.toString(),
+        updateStatus,
+        remarks.trim()
+      );
+      const axiosRes = response as {
+        status?: number;
+        data?: { success?: boolean; message?: string };
+        response?: { data?: { message?: string }; status?: number };
+      };
+
+      if (axiosRes.status === 200 || axiosRes.status === 201) {
+        const message =
+          axiosRes.data?.message || "Case status updated successfully.";
+        setUpdateSuccess(message);
+        setSelected((prev) =>
+          prev ? { ...prev, status: updateStatus } : prev
+        );
+        setCases((prev) =>
+          prev.map((c) =>
+            c.id === selected.id ? { ...c, status: updateStatus } : c
+          )
+        );
+        setRefreshKey((k) => k + 1);
+      } else if (axiosRes.response?.status === 401) {
+        clearAuthSession();
+        void router.replace("/login");
+      } else {
+        setUpdateError(
+          axiosRes.response?.data?.message ||
+            axiosRes.data?.message ||
+            "Unable to update case status."
+        );
+      }
+    } catch {
+      setUpdateError("Unable to update case status. Please try again.");
+    } finally {
+      setUpdatingStatus(false);
+    }
   };
 
   const displayName = getStaffDisplayName(user);
@@ -483,13 +570,57 @@ export default function DashboardPage() {
               value={new Date(selected.submitted).toLocaleString()}
             />
 
-            <Stack direction="row" spacing={1.5} sx={{ mt: 3 }}>
-              <Button variant="contained" fullWidth>
-                Update status
-              </Button>
-              <Button variant="outlined" fullWidth>
-                Assign
-              </Button>
+            <Divider sx={{ my: 2 }} />
+
+            <Typography sx={{ fontWeight: 700, mb: 1.5 }}>Update status</Typography>
+            <Stack spacing={2}>
+              <ScrollableSelect
+                id="case-status-update"
+                label="Status"
+                value={updateStatus}
+                onChange={(value) => setUpdateStatus(value as CaseStatus)}
+                options={CASE_STATUS_OPTIONS}
+                required
+              />
+              <TextField
+                fullWidth
+                multiline
+                minRows={3}
+                required
+                label="Remarks"
+                placeholder="e.g. Assigned to school counselor."
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                disabled={updatingStatus}
+              />
+              {updateError && (
+                <Alert severity="error" sx={{ borderRadius: 2 }}>
+                  {updateError}
+                </Alert>
+              )}
+              {updateSuccess && (
+                <Alert severity="success" sx={{ borderRadius: 2 }}>
+                  {updateSuccess}
+                </Alert>
+              )}
+              <Stack direction="row" spacing={1.5}>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  disabled={updatingStatus}
+                  onClick={() => void handleUpdateCaseStatus()}
+                  startIcon={
+                    updatingStatus ? (
+                      <CircularProgress size={16} color="inherit" />
+                    ) : undefined
+                  }
+                >
+                  {updatingStatus ? "Updating…" : "Update status"}
+                </Button>
+                <Button variant="outlined" fullWidth disabled>
+                  Assign
+                </Button>
+              </Stack>
             </Stack>
           </Box>
         )}

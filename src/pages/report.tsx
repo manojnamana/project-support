@@ -23,6 +23,7 @@ import {
   styled,
   TextField,
   Typography,
+  type AlertColor,
 } from "@mui/material";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
@@ -43,12 +44,13 @@ import {
   EVIDENCE_TYPES,
   URGENCY_LEVELS,
 } from "@/data";
-import { ConcernQuestion, ConcernType, SchoolOption, Severity } from "@/types/types";
+import { ConcernQuestion, ConcernType, CreateCasePayload, CreateCaseResponse, SchoolOption, Severity } from "@/types/types";
 import {
   GetPublicConcerns,
   GetPublicSchools,
   GetQuestionsBasedOnConcern,
 } from "@/services/getapis";
+import { CreateCase } from "@/services/postapis";
 
 const STEPS = [
   "School",
@@ -173,12 +175,8 @@ interface FormState {
 
 
 
-function makeCaseNumber() {
-  const n = 463 + Math.floor(Math.random() * 500);
-  return `PSV-2026-${String(n).padStart(5, "0")}`;
-}
 function makePin() {
-  return String(Math.floor(1000 + Math.random() * 9000));
+  return String(Math.floor(100000 + Math.random() * 900000));
 }
 
 export default function ReportPage() {
@@ -200,6 +198,7 @@ export default function ReportPage() {
   const [snackbar, setSnackbar] = React.useState<{
     open: boolean;
     message: string;
+    severity?: AlertColor;
   }>({ open: false, message: "" });
   const [publicSchools, setPublicSchools] = React.useState<SchoolOption[]>([]);
   const [loadingSchools, setLoadingSchools] = React.useState(false);
@@ -207,6 +206,7 @@ export default function ReportPage() {
   const [loadingConcerns, setLoadingConcerns] = React.useState(true);
   const [questions, setQuestions] = React.useState<ConcernQuestion[]>([]);
   const [loadingQuestions, setLoadingQuestions] = React.useState(false);
+  const [submitting, setSubmitting] = React.useState(false);
 
   const schoolOptions: AutocompleteOption[] = publicSchools.map((s) => ({
     value: s.id,
@@ -414,13 +414,109 @@ export default function ReportPage() {
   const next = () => setActiveStep((s) => Math.min(s + 1, STEPS.length - 1));
   const back = () => setActiveStep((s) => Math.max(s - 1, 0));
 
-  const submit = () => {
-    const caseNumber = makeCaseNumber();
+  const buildConcernTypes = (): CreateCasePayload["concern_types"] =>
+    form.concerns.map((slug) =>
+      slug === "other"
+        ? { other: form.otherConcern.trim() }
+        : slug
+    );
+
+  const submit = async () => {
+    if (submitting) return;
+
+    const selectedSchool = publicSchools.find((s) => s.id === form.school?.value);
+    const tenant = selectedSchool?.tenant_id;
+    if (!tenant) {
+      setSnackbar({
+        open: true,
+        message: "Unable to determine the school tenant. Please reselect your school.",
+        severity: "error",
+      });
+      return;
+    }
+
+    if (!form.urgency) {
+      setSnackbar({
+        open: true,
+        message: "Please select an urgency level before submitting.",
+        severity: "error",
+      });
+      return;
+    }
+
     const pin = makePin();
-    router.push({
-      pathname: "/success",
-      query: { case: caseNumber, pin, urgency: form.urgency },
-    });
+    const payload: CreateCasePayload = {
+      tenant,
+      pin,
+      severity: form.urgency,
+      source: "web",
+      locale: "en",
+      allow_follow_up: !form.anonymous,
+      concern_types: buildConcernTypes(),
+      answers: { ...form.answers },
+    };
+
+    if (!form.anonymous) {
+      payload.contact = {
+        name: form.name.trim() || "Reporter",
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        wants_followup: true,
+        preferred_contact_method: form.email.trim()
+          ? "email"
+          : form.phone.trim()
+            ? "phone"
+            : "email",
+      };
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await CreateCase(payload);
+      const axiosRes = response as {
+        status?: number;
+        data?: CreateCaseResponse;
+        response?: { data?: { message?: string } };
+      };
+
+      if (axiosRes.status === 200 || axiosRes.status === 201) {
+        const body = axiosRes.data;
+        if (!body?.success || !body.data?.case_number) {
+          setSnackbar({
+            open: true,
+            message: body?.message || "Unable to submit the report. Please try again.",
+            severity: "error",
+          });
+          return;
+        }
+
+        await router.push({
+          pathname: "/success",
+          query: {
+            case: body.data.case_number,
+            pin: body.case_pin || pin,
+            urgency: body.data.severity || form.urgency,
+          },
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message:
+            axiosRes.response?.data?.message ||
+            axiosRes.data?.message ||
+            "Unable to submit the report. Please try again.",
+          severity: "error",
+        });
+      }
+    } catch {
+      setSnackbar({
+        open: true,
+        message: "Unable to submit the report. Please try again.",
+        severity: "error",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -883,10 +979,17 @@ export default function ReportPage() {
               <Button
                 variant="contained"
                 color="success"
-                onClick={submit}
-                endIcon={<SendRoundedIcon />}
+                onClick={() => void submit()}
+                disabled={submitting}
+                endIcon={
+                  submitting ? (
+                    <CircularProgress size={18} color="inherit" />
+                  ) : (
+                    <SendRoundedIcon />
+                  )
+                }
               >
-                Submit Report
+                {submitting ? "Submitting…" : "Submit Report"}
               </Button>
             )}
           </Stack>
@@ -896,7 +999,7 @@ export default function ReportPage() {
       <AppSnackbar
         open={snackbar.open}
         message={snackbar.message}
-        severity="warning"
+        severity={snackbar.severity ?? "warning"}
         onClose={closeSnackbar}
       />
     </Box>

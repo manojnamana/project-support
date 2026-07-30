@@ -8,6 +8,7 @@ export interface SchoolOption {
   school_code: string;
   state: string;
   city: string;
+  tenant_id: string;
 }
 
 export interface ConcernType {
@@ -169,4 +170,39 @@ export interface DashboardResponse {
   success: boolean;
   message: string;
   data: DashboardData;
+}
+
+export interface CreateCaseContact {
+  name: string;
+  email: string;
+  phone: string;
+  wants_followup: boolean;
+  preferred_contact_method: "email" | "phone" | string;
+}
+
+export interface CreateCasePayload {
+  tenant: string;
+  pin: string;
+  severity: Severity;
+  source: string;
+  locale: string;
+  allow_follow_up: boolean;
+  concern_types: CaseTypeEntry[];
+  answers: Record<string, string>;
+  contact?: CreateCaseContact;
+}
+
+export interface CreateCaseResult {
+  id: string;
+  case_number: string;
+  status: CaseStatus;
+  severity: Severity;
+  created_at: string;
+}
+
+export interface CreateCaseResponse {
+  success: boolean;
+  message: string;
+  data: CreateCaseResult;
+  case_pin: string;
 }
