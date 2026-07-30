@@ -109,6 +109,14 @@ function clearCookie(name: string) {
   document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
 }
 
+function readCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(
+    new RegExp(`(?:^|; )${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}=([^;]*)`)
+  );
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 export function setAuthCookie(token: string) {
   setCookie(AUTH_COOKIE, token);
 }
@@ -158,4 +166,9 @@ export function clearAuthSession() {
   if (typeof window !== "undefined") {
     localStorage.removeItem(USER_STORAGE_KEY);
   }
+}
+
+/** Read the staff access token from the auth cookie (client-side). */
+export function getStaffAccessToken(): string | null {
+  return readCookie(AUTH_COOKIE);
 }

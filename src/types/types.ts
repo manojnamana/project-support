@@ -120,3 +120,41 @@ export interface StaffLoginResponse {
   tokens: StaffAuthTokens;
   user: StaffUser;
 }
+
+export interface DashboardSummary {
+  total_reports: number;
+  open_cases: number;
+  emergency_cases: number;
+  resolved_cases: number;
+}
+
+export interface DashboardPagination {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  current_page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export interface DashboardCase {
+  id: string;
+  case_number: string;
+  school: string;
+  concern_types: CaseTypeEntry[];
+  severity: Severity;
+  status: CaseStatus;
+  submitted: string;
+}
+
+export interface DashboardData {
+  summary: DashboardSummary;
+  pagination: DashboardPagination;
+  cases: DashboardCase[];
+}
+
+export interface DashboardResponse {
+  success: boolean;
+  message: string;
+  data: DashboardData;
+}

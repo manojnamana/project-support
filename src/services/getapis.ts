@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getStaffAccessToken } from "./auth";
 
 export const GetPublicSchools = async ()=>{
     try{
@@ -24,7 +25,7 @@ export const GetPublicConcerns= async ()=>{
 
 export const GetQuestionsBasedOnConcern = async (concern: string)=>{
     try{
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/public/concern/${concern}/questions`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/public/concerns/${concern}/questions`);
         return response;
     }
     catch(error){
@@ -44,3 +45,30 @@ export const GetCaseStatus = async (caseNumber: string,pin: string)=>{
         return error;
     }
 }
+
+export const GetDashboardData = async (
+  status: string,
+  severity: string,
+  page: number,
+  search: string
+) => {
+  try {
+    const token = getStaffAccessToken();
+    const params = new URLSearchParams({
+      status: status === "all" ? "" : status,
+      severity: severity === "all" ? "" : severity,
+      page: String(page),
+      search: search.trim(),
+    });
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/?${params.toString()}`,
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      }
+    );
+    return response;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+};
