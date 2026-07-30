@@ -40,11 +40,10 @@ import ScrollableAutocomplete, {
 } from "@/components/ScrollableAutocomplete";
 import Reveal from "@/components/Reveal";
 import {
-  CONCERN_PROMPTS,
   EVIDENCE_TYPES,
   URGENCY_LEVELS,
 } from "@/data";
-import { ConcernType, SchoolOption, Severity } from "@/types/types";
+import { ConcernQuestion, ConcernType, SchoolOption, Severity } from "@/types/types";
 import {
   GetPublicConcerns,
   GetPublicSchools,
@@ -67,11 +66,6 @@ const OTHER_CONCERN: ConcernType = {
   description: "A concern not listed above",
 };
 
-interface ConcernQuestion {
-  id: string;
-  text: string;
-}
-
 function normalizeConcernText(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
@@ -87,6 +81,17 @@ function findMatchingConcernType(text: string, concerns: ConcernType[]) {
   );
 }
 
+/** Map form concern slugs to API question query slugs (`other` alone → `others`). */
+function toQuestionSlugs(concernSlugs: string[]): string[] {
+  const selected = concernSlugs.filter(Boolean);
+  const hasOther = selected.includes("other");
+  const regular = selected.filter((slug) => slug !== "other");
+
+  // Only "Other" selected → request questions with slug=others
+  if (hasOther && regular.length === 0) return ["others"];
+  return regular;
+}
+
 function normalizeQuestions(payload: unknown): ConcernQuestion[] {
   const list = Array.isArray(payload)
     ? payload
@@ -100,36 +105,43 @@ function normalizeQuestions(payload: unknown): ConcernQuestion[] {
   const questions: ConcernQuestion[] = [];
 
   list.forEach((item, index) => {
-    if (typeof item === "string") {
-      const text = item.trim();
-      if (!text || seen.has(text)) return;
-      seen.add(text);
-      questions.push({ id: `q-${index}`, text });
-      return;
-    }
-
     if (!item || typeof item !== "object") return;
     const row = item as Record<string, unknown>;
-    const text = [row.text, row.question, row.prompt, row.label, row.title]
+    const questionText = [row.question, row.text, row.prompt, row.label, row.title]
       .find((v) => typeof v === "string" && v.trim())
       ?.toString()
       .trim();
-    if (!text || seen.has(text)) return;
-    seen.add(text);
+    if (!questionText) return;
+
+    const fieldKey =
+      typeof row.field_key === "string" && row.field_key.trim()
+        ? row.field_key.trim()
+        : `field_${index}`;
+    if (seen.has(fieldKey)) return;
+    seen.add(fieldKey);
+
     const id =
       typeof row.id === "string" || typeof row.id === "number"
         ? String(row.id)
-        : `q-${index}`;
-    questions.push({ id, text });
+        : fieldKey;
+
+    questions.push({
+      id,
+      question: questionText,
+      field_key: fieldKey,
+      field_type:
+        typeof row.field_type === "string" && row.field_type.trim()
+          ? row.field_type.trim()
+          : "text",
+      is_required: Boolean(row.is_required),
+      display_order:
+        typeof row.display_order === "number" ? row.display_order : index + 1,
+      is_common: Boolean(row.is_common),
+    });
   });
 
-  return questions;
+  return questions.sort((a, b) => a.display_order - b.display_order);
 }
-
-const FALLBACK_QUESTIONS: ConcernQuestion[] = CONCERN_PROMPTS.map((text, i) => ({
-  id: `prompt-${i}`,
-  text,
-}));
 
 const SolidConnector = styled(StepConnector)(({ theme }) => ({
   [`&.${stepConnectorClasses.active} .${stepConnectorClasses.line}, &.${stepConnectorClasses.completed} .${stepConnectorClasses.line}`]:
@@ -259,7 +271,7 @@ export default function ReportPage() {
   }
 
   const fetchQuestionsForConcerns = async (concernSlugs: string[]) => {
-    const slugs = concernSlugs.filter((slug) => slug && slug !== "other");
+    const slugs = toQuestionSlugs(concernSlugs);
     if (!slugs.length) {
       setQuestions([]);
       return;
@@ -267,23 +279,27 @@ export default function ReportPage() {
 
     setLoadingQuestions(true);
     try {
-      const responses = await Promise.all(
-        slugs.map((slug) => GetQuestionsBasedOnConcern(slug))
-      );
-      const merged: ConcernQuestion[] = [];
-      const seen = new Set<string>();
-
-      responses.forEach((response) => {
-        const axiosRes = response as { status?: number; data?: unknown };
-        if (axiosRes.status !== 200 && axiosRes.status !== 201) return;
-        normalizeQuestions(axiosRes.data).forEach((q) => {
-          if (seen.has(q.text)) return;
-          seen.add(q.text);
-          merged.push(q);
+      const response = await GetQuestionsBasedOnConcern(slugs);
+      const axiosRes = response as { status?: number; data?: unknown };
+      if (axiosRes.status === 200 || axiosRes.status === 201) {
+        const nextQuestions = normalizeQuestions(axiosRes.data);
+        setQuestions(nextQuestions);
+        setForm((f) => {
+          const nextAnswers: Record<string, string> = {};
+          nextQuestions.forEach((q) => {
+            if (f.answers[q.field_key]) {
+              nextAnswers[q.field_key] = f.answers[q.field_key];
+            }
+          });
+          return { ...f, answers: nextAnswers };
         });
-      });
-
-      setQuestions(merged);
+      } else {
+        setQuestions([]);
+        setSnackbar({
+          open: true,
+          message: "Error fetching concern questions",
+        });
+      }
     } catch (error) {
       console.log(error);
       setSnackbar({
@@ -316,16 +332,15 @@ export default function ReportPage() {
     }
   }, [router.isReady, router.query.mode]);
 
-  const detailQuestions =
-    questions.length > 0 ? questions : FALLBACK_QUESTIONS;
+  const detailQuestions = questions;
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
 
-  const setAnswer = (questionId: string, value: string) =>
+  const setAnswer = (fieldKey: string, value: string) =>
     setForm((f) => ({
       ...f,
-      answers: { ...f.answers, [questionId]: value },
+      answers: { ...f.answers, [fieldKey]: value },
     }));
 
   const closeSnackbar = () => setSnackbar((s) => ({ ...s, open: false }));
@@ -385,7 +400,11 @@ export default function ReportPage() {
         return (
           !loadingQuestions &&
           detailQuestions.length > 0 &&
-          detailQuestions.every((q) => (form.answers[q.id] ?? "").trim().length >= 2)
+          detailQuestions.every((q) => {
+            const value = (form.answers[q.field_key] ?? "").trim();
+            if (q.is_required) return value.length > 0;
+            return value.length > 0;
+          })
         );
       default:
         return true;
@@ -614,21 +633,83 @@ export default function ReportPage() {
                         Loading questions…
                       </Typography>
                     </Stack>
+                  ) : detailQuestions.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">
+                      No questions available for the selected concern(s).
+                    </Typography>
                   ) : (
                     <Stack spacing={2.5}>
                       {detailQuestions.map((q) => {
-                        const value = form.answers[q.id] ?? "";
+                        const value = form.answers[q.field_key] ?? "";
+                        const label = q.question;
+
+                        if (q.field_type === "boolean") {
+                          return (
+                            <Box key={q.id}>
+                              <Typography sx={{ fontWeight: 600, mb: 1 }}>
+                                {label}
+                                {q.is_required ? " *" : ""}
+                              </Typography>
+                              <Stack direction="row" spacing={1}>
+                                {["Yes", "No"].map((option) => {
+                                  const optionValue = option.toLowerCase();
+                                  const selected = value === optionValue;
+                                  return (
+                                    <Chip
+                                      key={option}
+                                      label={option}
+                                      clickable
+                                      color={selected ? "primary" : "default"}
+                                      variant={selected ? "filled" : "outlined"}
+                                      onClick={() => setAnswer(q.field_key, optionValue)}
+                                    />
+                                  );
+                                })}
+                              </Stack>
+                            </Box>
+                          );
+                        }
+
+                        if (q.field_type === "date") {
+                          return (
+                            <TextField
+                              key={q.id}
+                              fullWidth
+                              type="date"
+                              required={q.is_required}
+                              label={label}
+                              value={value}
+                              onChange={(e) => setAnswer(q.field_key, e.target.value)}
+                              InputLabelProps={{ shrink: true }}
+                            />
+                          );
+                        }
+
+                        if (q.field_type === "textarea") {
+                          return (
+                            <TextField
+                              key={q.id}
+                              fullWidth
+                              multiline
+                              minRows={3}
+                              required={q.is_required}
+                              label={label}
+                              placeholder="Type your answer…"
+                              value={value}
+                              onChange={(e) => setAnswer(q.field_key, e.target.value)}
+                            />
+                          );
+                        }
+
                         return (
                           <TextField
                             key={q.id}
                             fullWidth
-                            multiline
-                            minRows={2}
-                            required
-                            label={q.text}
+                            required={q.is_required}
+                            label={label}
                             placeholder="Type your answer…"
                             value={value}
-                            onChange={(e) => setAnswer(q.id, e.target.value)}
+                            onChange={(e) => setAnswer(q.field_key, e.target.value)}
                           />
                         );
                       })}

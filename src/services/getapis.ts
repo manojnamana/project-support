@@ -23,17 +23,21 @@ export const GetPublicConcerns= async ()=>{
     }
 }
 
-export const GetQuestionsBasedOnConcern = async (concern: string)=>{
-    try{
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/public/concerns/${concern}/questions`);
-        return response;
-    }
-    catch(error){
-        console.log(error);
-        return error;
-    }
-}
-
+export const GetQuestionsBasedOnConcern = async (concerns: string[]) => {
+  try {
+    const params = new URLSearchParams();
+    concerns.forEach((slug) => {
+      if (slug) params.append("slug", slug);
+    });
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/public/concerns/questions/?${params.toString()}`
+    );
+    return response;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+};
 
 export const GetCaseStatus = async (caseNumber: string,pin: string)=>{
     try{

@@ -17,6 +17,18 @@ export interface ConcernType {
   description: string;
 }
 
+export type ConcernQuestionFieldType = "text" | "textarea" | "boolean" | "date" | string;
+
+export interface ConcernQuestion {
+  id: string;
+  question: string;
+  field_key: string;
+  field_type: ConcernQuestionFieldType;
+  is_required: boolean;
+  display_order: number;
+  is_common: boolean;
+}
+
 export interface UrgencyLevel {
   value: Severity;
   title: string;
