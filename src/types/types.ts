@@ -134,6 +134,11 @@ export interface StaffLoginResponse {
   user: StaffUser;
 }
 
+export interface RefreshTokenResponse {
+  access: string;
+  refresh?: string;
+}
+
 export interface DashboardSummary {
   total_reports: number;
   open_cases: number;

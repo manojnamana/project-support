@@ -1,17 +1,19 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export const AUTH_COOKIE = "auth_token";
+const AUTH_COOKIE = "auth_token";
+const REFRESH_COOKIE = "refresh_token";
 
 /**
  * Network-boundary auth gate.
- * Only authenticated staff (valid auth cookie) can reach /dashboard.
- * Unauthenticated users are sent to /login.
+ * Allow dashboard when access OR refresh token is present so the client
+ * can silently refresh an expired 60-minute access token.
  */
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const token = request.cookies.get(AUTH_COOKIE)?.value;
-  const isAuthenticated = Boolean(token);
+  const access = request.cookies.get(AUTH_COOKIE)?.value;
+  const refresh = request.cookies.get(REFRESH_COOKIE)?.value;
+  const isAuthenticated = Boolean(access || refresh);
 
   if (pathname.startsWith("/dashboard") && !isAuthenticated) {
     const loginUrl = new URL("/login", request.url);

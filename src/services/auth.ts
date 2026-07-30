@@ -2,9 +2,15 @@ import axios from "axios";
 import type { StaffLoginResponse, StaffUser } from "@/types/types";
 
 export const AUTH_COOKIE = "auth_token";
-const REFRESH_COOKIE = "refresh_token";
+export const REFRESH_COOKIE = "refresh_token";
 const USER_STORAGE_KEY = "staff_user";
-const AUTH_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
+
+/** Access token lifetime: 60 minutes (matches backend). */
+export const ACCESS_TOKEN_MAX_AGE_SECONDS = 60 * 60;
+/** Refresh token lifetime: 7 days. */
+export const REFRESH_TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+/** Refresh a minute before access token expiry. */
+const ACCESS_EXPIRY_BUFFER_MS = 60 * 1000;
 
 function getApiBase() {
   return (
@@ -43,7 +49,7 @@ export const registerStaffFun = async (payload: unknown) => {
   }
 };
 
-/** Pull the access token from the staff login response (`tokens.access`). */
+/** Pull the access token from the staff login / refresh response. */
 export function extractAuthToken(payload: unknown): string | null {
   if (!payload || typeof payload !== "object") return null;
   const body = payload as Record<string, unknown>;
@@ -87,8 +93,12 @@ export function extractRefreshToken(payload: unknown): string | null {
     body.tokens && typeof body.tokens === "object"
       ? (body.tokens as Record<string, unknown>)
       : null;
-  const value = tokens?.refresh;
-  return typeof value === "string" && value.trim() ? value.trim() : null;
+
+  const candidates = [tokens?.refresh, body.refresh];
+  for (const value of candidates) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return null;
 }
 
 export function extractStaffUser(payload: unknown): StaffUser | null {
@@ -99,9 +109,9 @@ export function extractStaffUser(payload: unknown): StaffUser | null {
   return user as StaffUser;
 }
 
-function setCookie(name: string, value: string) {
+function setCookie(name: string, value: string, maxAgeSeconds: number) {
   if (typeof document === "undefined") return;
-  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${AUTH_MAX_AGE_SECONDS}; SameSite=Lax`;
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
 }
 
 function clearCookie(name: string) {
@@ -118,7 +128,11 @@ function readCookie(name: string): string | null {
 }
 
 export function setAuthCookie(token: string) {
-  setCookie(AUTH_COOKIE, token);
+  setCookie(AUTH_COOKIE, token, ACCESS_TOKEN_MAX_AGE_SECONDS);
+}
+
+export function setRefreshCookie(token: string) {
+  setCookie(REFRESH_COOKIE, token, REFRESH_TOKEN_MAX_AGE_SECONDS);
 }
 
 export function clearAuthCookie() {
@@ -135,7 +149,7 @@ export function saveAuthSession(response: StaffLoginResponse): boolean {
   if (!access || !user) return false;
 
   setAuthCookie(access);
-  if (refresh) setCookie(REFRESH_COOKIE, refresh);
+  if (refresh) setRefreshCookie(refresh);
 
   if (typeof window !== "undefined") {
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
@@ -171,4 +185,84 @@ export function clearAuthSession() {
 /** Read the staff access token from the auth cookie (client-side). */
 export function getStaffAccessToken(): string | null {
   return readCookie(AUTH_COOKIE);
+}
+
+export function getStaffRefreshToken(): string | null {
+  return readCookie(REFRESH_COOKIE);
+}
+
+function decodeJwtExpMs(token: string): number | null {
+  try {
+    const [, payload] = token.split(".");
+    if (!payload) return null;
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(
+      normalized.length + ((4 - (normalized.length % 4)) % 4),
+      "="
+    );
+    const json = JSON.parse(atob(padded)) as { exp?: number };
+    return typeof json.exp === "number" ? json.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+/** True when access token is missing or within the expiry buffer. */
+export function isAccessTokenExpired(
+  token: string | null,
+  bufferMs = ACCESS_EXPIRY_BUFFER_MS
+): boolean {
+  if (!token) return true;
+  const expMs = decodeJwtExpMs(token);
+  // Non-JWT tokens (e.g. demo) — treat as valid until cookie clears.
+  if (expMs == null) return false;
+  return Date.now() >= expMs - bufferMs;
+}
+
+let refreshInFlight: Promise<string | null> | null = null;
+
+/**
+ * Exchange the refresh token for a new access token.
+ * Uses SimpleJWT-style `POST /token/refresh/` with `{ refresh }`.
+ */
+export async function refreshAccessToken(): Promise<string | null> {
+  const refresh = getStaffRefreshToken();
+  if (!refresh) return null;
+
+  try {
+    const response = await axios.post(`${getApiBase()}/token/refresh/`, {
+      refresh,
+    });
+    const access = extractAuthToken(response.data);
+    const nextRefresh = extractRefreshToken(response.data);
+
+    if (!access) return null;
+
+    setAuthCookie(access);
+    if (nextRefresh) setRefreshCookie(nextRefresh);
+    return access;
+  } catch (error) {
+    console.error(error);
+    clearAuthSession();
+    return null;
+  }
+}
+
+/**
+ * Return a usable access token, refreshing with the refresh token when expired.
+ * Concurrent callers share one in-flight refresh request.
+ */
+export async function getValidAccessToken(): Promise<string | null> {
+  const access = getStaffAccessToken();
+  if (access && !isAccessTokenExpired(access)) return access;
+
+  if (!getStaffRefreshToken()) return null;
+
+  if (!refreshInFlight) {
+    refreshInFlight = refreshAccessToken().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+
+  return refreshInFlight;
 }
