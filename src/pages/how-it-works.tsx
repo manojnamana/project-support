@@ -206,7 +206,7 @@ export default function HowItWorks() {
                         <Chip
                           key={role}
                           label={role}
-                          sx={{ bgcolor: "secondary.main", color: "text.primary" }}
+                          sx={{ bgcolor: "rgba(255,255,255,0.15)", color: "common.white" }}
                         />
                       ))}
                     </Stack>
@@ -222,7 +222,7 @@ export default function HowItWorks() {
                       sx={{
                         bgcolor: "background.paper",
                         color: "text.primary",
-                        "&:hover": { bgcolor: "secondary.main" },
+                        "&:hover": { bgcolor: "success.light" },
                       }}
                     >
                       Report a concern

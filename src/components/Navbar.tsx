@@ -16,8 +16,9 @@ import {
 } from "@mui/material";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import CampaignRoundedIcon from "@mui/icons-material/CampaignRounded";
+import HelpOutlineRoundedIcon from "@mui/icons-material/HelpOutlineRounded";
 import Logo from "./Logo";
+import TopEmergencyBar from "./TopEmergencyBar";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
@@ -39,12 +40,13 @@ export default function Navbar() {
     <AppBar
       position="sticky"
       sx={{
-        backgroundColor: "background.paper",
+        backgroundColor: "rgba(255,255,255,0.92)",
+        backdropFilter: "blur(12px)",
         borderBottom: "1px solid",
         borderColor: "divider",
-        transition: "border-color .2s ease",
       }}
     >
+      <TopEmergencyBar />
       <Container maxWidth="lg">
         <Toolbar disableGutters sx={{ minHeight: { xs: 64, md: 72 } }}>
           <Link href="/" aria-label="Project SUPPORT home">
@@ -55,7 +57,7 @@ export default function Navbar() {
 
           <Stack
             direction="row"
-            spacing={0.5}
+            spacing={0.25}
             sx={{ display: { xs: "none", md: "flex" }, alignItems: "center" }}
           >
             {NAV_LINKS.map((link) => (
@@ -65,13 +67,15 @@ export default function Navbar() {
                 href={link.href}
                 sx={{
                   color: isActive(link.href) ? "primary.dark" : "text.secondary",
-                  fontWeight: isActive(link.href) ? 700 : 600,
+                  fontWeight: isActive(link.href) ? 700 : 500,
+                  fontSize: "0.9rem",
                   position: "relative",
+                  px: 1.5,
                   "&::after": {
                     content: '""',
                     position: "absolute",
-                    left: 16,
-                    right: 16,
+                    left: 14,
+                    right: 14,
                     bottom: 6,
                     height: 2,
                     borderRadius: 2,
@@ -80,6 +84,7 @@ export default function Navbar() {
                     transformOrigin: "center",
                     transition: "transform .25s cubic-bezier(0.16,1,0.3,1)",
                   },
+                  "&:hover": { color: "primary.dark", bgcolor: "transparent" },
                   "&:hover::after": { transform: "scaleX(1)" },
                 }}
               >
@@ -88,12 +93,23 @@ export default function Navbar() {
             ))}
             <Button
               component={Link}
-              href="/report"
-              variant="contained"
-              startIcon={<CampaignRoundedIcon />}
-              sx={{ ml: 1 }}
+              href="/resources"
+              variant="outlined"
+              startIcon={<HelpOutlineRoundedIcon />}
+              sx={{
+                ml: 1.5,
+
+                borderColor: "primary.main",
+                color: "primary.dark",
+                px: 2,
+                fontWeight: 600,
+                "&:hover": {
+                  borderColor: "primary.dark",
+                  bgcolor: "success.light",
+                },
+              }}
             >
-              Report Now
+              Get Help Now
             </Button>
           </Stack>
 
@@ -145,14 +161,14 @@ export default function Navbar() {
         </List>
         <Button
           component={Link}
-          href="/report"
+          href="/resources"
           variant="contained"
           fullWidth
-          startIcon={<CampaignRoundedIcon />}
+          startIcon={<HelpOutlineRoundedIcon />}
           onClick={() => setOpen(false)}
           sx={{ mt: 1 }}
         >
-          Report Now
+          Get Help Now
         </Button>
       </Drawer>
     </AppBar>

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Box, Stack, Typography } from "@mui/material";
-import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
+import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
+import { ShieldRounded } from "@mui/icons-material";
 
 interface LogoProps {
   compact?: boolean;
@@ -12,26 +13,29 @@ export default function Logo({ compact = false, onDark = false }: LogoProps) {
     <Stack direction="row" spacing={1.25} alignItems="center">
       <Box
         sx={{
-          width: 38,
-          height: 38,
-          borderRadius: 1.5,
+          width: 40,
+          height: 40,
+          borderRadius: "50%",
           display: "grid",
           placeItems: "center",
-          bgcolor: "primary.main",
-          color: "primary.contrastText", // was text.primary — invisible if primary is dark
+          bgcolor: onDark ? "rgba(255,255,255,0.12)" : "success.light",
+          color: onDark ? "#fff" : "primary.dark",
+          border: "1.5px solid",
+          borderColor: onDark ? "rgba(255,255,255,0.25)" : "primary.main",
         }}
       >
-        <ShieldRoundedIcon fontSize="small" />
+        <ShieldRounded sx={{ fontSize: 20 }} />
       </Box>
       {!compact && (
-        <Box sx={{ lineHeight: 1 }}>
+        <Box sx={{ lineHeight: 1.15 }}>
           <Typography
             component="span"
             sx={{
               fontWeight: 800,
-              fontSize: "1.05rem",
-              letterSpacing: "-0.02em",
-              color: onDark ? "#fff" : "text.primary",
+              fontSize: "0.95rem",
+              letterSpacing: "0.02em",
+              textTransform: "uppercase",
+              color: onDark ? "#fff" : "primary.dark",
               display: "block",
             }}
           >
@@ -41,13 +45,12 @@ export default function Logo({ compact = false, onDark = false }: LogoProps) {
             component="span"
             sx={{
               fontSize: "0.68rem",
-              fontWeight: 600,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
+              fontWeight: 500,
+              letterSpacing: "0.02em",
               color: onDark ? "rgba(255,255,255,0.75)" : "text.secondary",
             }}
           >
-            Safer Schools Initiative
+            School Safety. Together.
           </Typography>
         </Box>
       )}

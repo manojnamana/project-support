@@ -1,77 +1,105 @@
 import { createTheme } from "@mui/material/styles";
 
-// ————————————————————————————————————————————————————————————————
-// Project SUPPORT theme — spruce + amber.
-// The whole point of this file: every surface color has a correct
-// contrastText so components can use `*.contrastText` and never hardcode
-// common.white / text.primary on a colored background again.
-// ————————————————————————————————————————————————————————————————
+// Project SUPPORT — trust-forward green + navy palette.
+// Soft greens for calm/safety; navy for emergency/footer; red for urgency only.
 
-const SPRUCE = "#16332C";       // primary
-const SPRUCE_DARK = "#0E241E";
-const SPRUCE_LIGHT = "#24473E";
-const AMBER = "#E8A13D";        // secondary / calls to action
-const AMBER_DARK = "#C9821B";
-const AMBER_LIGHT = "#F2C078";
-const SAGE = "#DCE7DF";
+const PRIMARY_DARK = "#1F5E4E";
+const PRIMARY = "#2F7D5A";
+const PRIMARY_LIGHT = "#3D9A70";
+const LIGHT_GREEN = "#EAF5EF";
+const BACKGROUND = "#FAFBFA";
 const PAPER = "#FFFFFF";
-const CANVAS = "#F7F5F0";       // warm off-white page background
-const INK = "#1E2422";
-const INK_SOFT = "#5C6662";
+const DARK_TEXT = "#1E293B";
+const SECONDARY_TEXT = "#64748B";
+const BORDER = "#E5E7EB";
+const NAVY = "#163B6D";
+const FOOTER = "#0F2F52";
+const DANGER = "#DC2626";
+const WARNING = "#F59E0B";
+const SUCCESS = "#22C55E";
 
 const theme = createTheme({
   palette: {
     mode: "light",
     primary: {
-      main: SPRUCE,
-      dark: SPRUCE_DARK,
-      light: SPRUCE_LIGHT,
-      contrastText: "#FFFFFF",     // white reads on spruce — use this, not common.white
+      main: PRIMARY,
+      dark: PRIMARY_DARK,
+      light: PRIMARY_LIGHT,
+      contrastText: "#FFFFFF",
     },
     secondary: {
-      main: AMBER,
-      dark: AMBER_DARK,
-      light: AMBER_LIGHT,
-      contrastText: SPRUCE,        // dark text reads on amber, NOT white
+      main: NAVY,
+      dark: FOOTER,
+      light: "#F3F7FC",
+      contrastText: "#FFFFFF",
     },
-    error:   { main: "#B93A2B", light: "#E4A79F", contrastText: "#FFFFFF" },
-    warning: { main: "#C9821B", light: "#F2C078", contrastText: "#1E2422" },
-    info:    { main: "#3E6B7E", light: "#AEC6D0", contrastText: "#FFFFFF" },
-    success: { main: "#3E6B54", light: "#B7CFC0", contrastText: "#FFFFFF" },
-    background: { default: CANVAS, paper: PAPER },
-    text: { primary: INK, secondary: INK_SOFT },
-    divider: "#E3E0D8",
-    action: { hover: "rgba(22,51,44,0.04)", selected: "rgba(22,51,44,0.08)" },
+    error: { main: DANGER, light: "#FECACA", contrastText: "#FFFFFF" },
+    warning: { main: WARNING, light: "#FDE68A", contrastText: DARK_TEXT },
+    info: { main: NAVY, light: "#BFDBFE", contrastText: "#FFFFFF" },
+    success: { main: SUCCESS, light: LIGHT_GREEN, contrastText: "#FFFFFF" },
+    background: { default: BACKGROUND, paper: PAPER },
+    text: { primary: DARK_TEXT, secondary: SECONDARY_TEXT },
+    divider: BORDER,
+    action: {
+      hover: "rgba(47,125,90,0.06)",
+      selected: "rgba(47,125,90,0.10)",
+    },
   },
 
-  shape: { borderRadius: 12 },
+  shape: { borderRadius: 18 },
 
   typography: {
     fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
-    h2: { fontWeight: 800, letterSpacing: "-0.02em" },
-    h3: { fontWeight: 800, letterSpacing: "-0.02em" },
-    h4: { fontWeight: 700, letterSpacing: "-0.01em" },
-    h5: { fontWeight: 700 },
-    h6: { fontWeight: 700 },
-    button: { fontWeight: 700, textTransform: "none" },
-    overline: { fontWeight: 700, letterSpacing: "0.12em" },
+    h2: { fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.2 },
+    h3: { fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.2 },
+    h4: { fontWeight: 700, letterSpacing: "-0.01em", lineHeight: 1.25 },
+    h5: { fontWeight: 700, lineHeight: 1.3 },
+    h6: { fontWeight: 600, lineHeight: 1.35 },
+    button: { fontWeight: 500, textTransform: "none" },
+    overline: { fontWeight: 700, letterSpacing: "0.1em" },
+    body1: { fontWeight: 400, lineHeight: 1.6 },
+    body2: { fontWeight: 400, lineHeight: 1.55 },
   },
 
   components: {
     MuiButton: {
       defaultProps: { disableElevation: true },
       styleOverrides: {
-        root: { borderRadius: 12, paddingTop: 10, paddingBottom: 10 },
-        containedSecondary: { color: SPRUCE },   // amber button, spruce label
+        root: {
+          borderRadius: 14,
+          paddingTop: 10,
+          paddingBottom: 10,
+          fontWeight: 500,
+          transition: "transform .2s ease, box-shadow .2s ease, background-color .2s ease",
+          "&:hover": { transform: "scale(1.02)" },
+        },
+        containedPrimary: {
+          backgroundColor: PRIMARY_DARK,
+          "&:hover": { backgroundColor: PRIMARY },
+        },
+        outlinedPrimary: {
+          borderColor: PRIMARY,
+          color: PRIMARY_DARK,
+          backgroundColor: PAPER,
+          "&:hover": {
+            borderColor: PRIMARY_DARK,
+            backgroundColor: LIGHT_GREEN,
+          },
+        },
       },
     },
     MuiCard: {
       defaultProps: { variant: "outlined" },
       styleOverrides: {
         root: {
-          borderRadius: 16,
-          borderColor: "#E3E0D8",
-          transition: "border-color .2s ease, box-shadow .2s ease",
+          borderRadius: 18,
+          borderColor: BORDER,
+          boxShadow: "0 8px 30px rgba(15,23,42,.06)",
+          transition: "transform .3s ease, box-shadow .3s ease, border-color .3s ease",
+          "&:hover": {
+            transform: "translateY(-4px)",
+            boxShadow: "0 12px 36px rgba(15,23,42,.1)",
+          },
         },
       },
     },

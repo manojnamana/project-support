@@ -184,7 +184,7 @@ export default function ResourcesPage() {
                             minWidth: 88,
                             fontWeight: 700,
                             letterSpacing: "0.04em",
-                            color: "secondary.dark",
+                            color: "primary.dark",
                           }}
                         >
                           {item.date}
@@ -245,7 +245,7 @@ export default function ResourcesPage() {
                       sx={{
                         bgcolor: "background.paper",
                         color: "text.primary",
-                        "&:hover": { bgcolor: "secondary.main" },
+                        "&:hover": { bgcolor: "success.light" },
                       }}
                     >
                       Report a concern
