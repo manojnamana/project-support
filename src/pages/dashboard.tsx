@@ -469,7 +469,7 @@ export default function DashboardPage() {
                         <TableCell>
                           <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
                             {types.map((t) => (
-                              <Chip key={t} label={t} size="small" variant="outlined" />
+                              <Chip key={t} label={t} size="small" sx={{textTransform: "capitalize"}} variant="outlined" />
                             ))}
                           </Stack>
                         </TableCell>
@@ -689,9 +689,9 @@ export default function DashboardPage() {
                 >
                   {updatingStatus ? "Updating…" : "Update status"}
                 </Button>
-                <Button variant="outlined" fullWidth disabled>
+                {/* <Button variant="outlined" fullWidth disabled>
                   Assign
-                </Button>
+                </Button> */}
               </Stack>
             </Stack>
           </Box>
