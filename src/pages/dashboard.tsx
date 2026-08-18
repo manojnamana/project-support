@@ -302,13 +302,13 @@ export default function DashboardPage() {
             <Box sx={{ display: { xs: "none", sm: "block" }, textAlign: "right" }}>
               <Typography
                 variant="body2"
-                sx={{ fontWeight: 600, color: "primary.contrastText" }}
+                sx={{ fontWeight: 600, color: "common.white" }}
               >
                 {displayName}
               </Typography>
               <Typography
                 variant="caption"
-                sx={{ color: "primary.contrastText", opacity: 0.8 }}
+                sx={{ color: "common.white", opacity: 0.8 }}
               >
                 {user?.email || roleLabel}
               </Typography>
@@ -319,7 +319,7 @@ export default function DashboardPage() {
               onClick={handleLogout}
               sx={{
                 color: "primary.contrastText",
-                borderColor: "primary.contrastText",
+             
               }}
             >
               Sign out

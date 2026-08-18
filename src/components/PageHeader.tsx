@@ -39,7 +39,7 @@ export default function PageHeader({ eyebrow, title, subtitle, action }: PageHea
                     letterSpacing: "0.14em",
                     fontWeight: 700,
                     fontSize: "0.75rem",
-                    color: "primary.contrastText",
+                    color: "common.white",
                     opacity: 0.85,
                     mb: 1,
                   }}
@@ -47,13 +47,13 @@ export default function PageHeader({ eyebrow, title, subtitle, action }: PageHea
                   {eyebrow}
                 </Typography>
               )}
-              <Typography variant="h3" sx={{ maxWidth: 720, color: "primary.contrastText" }}>
+              <Typography variant="h3" sx={{ maxWidth: 720, color: "common.white" }}>
                 {title}
               </Typography>
               {subtitle && (
                 <Typography
                   variant="body1"
-                  sx={{ mt: 1.5, maxWidth: 640, color: "primary.contrastText", opacity: 0.9 }}
+                  sx={{ mt: 1.5, maxWidth: 640, color: "common.white", opacity: 0.9 }}
                 >
                   {subtitle}
                 </Typography>

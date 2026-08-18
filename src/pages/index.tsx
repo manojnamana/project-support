@@ -154,7 +154,7 @@ export default function Home() {
           position: "relative",
           pt: { xs: 5, md: 8 },
           pb: { xs: 6, md: 10 },
-          background: "linear-gradient(180deg, #FFFFFF 0%, #FAFBFA 55%, #EAF5EF 100%)",
+          background: "linear-gradient(180deg, #FFFFFF 0%, #F8F6EE 55%, #FFF6D6 100%)",
         }}
       >
         <Container maxWidth="lg">
@@ -171,7 +171,7 @@ export default function Home() {
             
                   }}
                 >
-                  Your safety matters.
+                  Your safety matters. Speak Up.
                 </Typography>
                 <Typography
                   variant="h2"
@@ -183,9 +183,8 @@ export default function Home() {
                     mb: 2,
                   }}
                 >
-                  You can speak up.
-                  <br />
-                  We will listen.
+                  
+                  We’ll Listen. We’ll Act.
                 </Typography>
                 <Typography
                   color="text.secondary"
@@ -255,10 +254,11 @@ export default function Home() {
                       gap: 1.5,
                       py: 2,
                       px: 2.5,
+                      color: "common.white",
                       // borderRadius: 3,
-                      bgcolor: "primary.dark",
-                      boxShadow: "0 8px 24px rgba(31,94,78,.25)",
-                      "&:hover": { bgcolor: "primary.main" },
+                      bgcolor: "primary.main",
+                      boxShadow: "0 8px 24px rgba(232,168,23,.35)",
+                      "&:hover": { bgcolor: "primary.dark", color: "common.white" },
                     }}
                   >
                     <Box
@@ -349,7 +349,7 @@ export default function Home() {
                     // border: "1px solid",
                     borderColor: "divider",
                     aspectRatio: "4/3",
-                    bgcolor: "#F0F4F8",
+                    bgcolor: "#F3EFD9",
                   }}
                 >
                   <Image
@@ -592,7 +592,7 @@ export default function Home() {
                     "&:hover": {
                       transform: "translateY(-4px)",
                       borderColor: "secondary.main",
-                      boxShadow: "0 12px 36px rgba(31,94,78,.3)",
+                      boxShadow: "0 12px 36px rgba(226,90,12,.28)",
                     },
                   }}
                 >

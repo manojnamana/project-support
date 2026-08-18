@@ -109,7 +109,7 @@ export default function ResourcesPage() {
                       <Typography
                         variant="subtitle1"
                         sx={{
-                          color: "primary.contrastText",
+                          color: "common.white",
                           fontWeight: 700,
                           lineHeight: 1.35,
                           display: "-webkit-box",

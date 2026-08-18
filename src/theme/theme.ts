@@ -1,22 +1,23 @@
 import { createTheme } from "@mui/material/styles";
 
-// Project SUPPORT — trust-forward green + navy palette.
-// Soft greens for calm/safety; navy for emergency/footer; red for urgency only.
+// Project SUPPORT — palette drawn from the hero illustration.
+// Sun yellow for primary; backpack orange for secondary; cream sky for calm;
+// leaf green for success; red for urgency only.
 
-const PRIMARY_DARK = "#1F5E4E";
-const PRIMARY = "#2F7D5A";
-const PRIMARY_LIGHT = "#3D9A70";
-const LIGHT_GREEN = "#EAF5EF";
-const BACKGROUND = "#FAFBFA";
+const PRIMARY_DARK = "#C7800D";
+const PRIMARY = "#E8A817";
+const PRIMARY_LIGHT = "#F7CF0F";
+const LIGHT_YELLOW = "#FFF6D6";
+const BACKGROUND = "#F8F6EE";
 const PAPER = "#FFFFFF";
-const DARK_TEXT = "#1E293B";
-const SECONDARY_TEXT = "#64748B";
-const BORDER = "#E5E7EB";
-const NAVY = "#163B6D";
-const FOOTER = "#0F2F52";
+const DARK_TEXT = "#1C1408";
+const SECONDARY_TEXT = "#6B5E4A";
+const BORDER = "#E8E4D6";
+const ORANGE = "#E25A0C";
+const ORANGE_DARK = "#D4440BD3";
 const DANGER = "#DC2626";
-const WARNING = "#F59E0B";
-const SUCCESS = "#22C55E";
+const WARNING = "#D97706";
+const SUCCESS = "#3A8A3E";
 
 const theme = createTheme({
   palette: {
@@ -25,24 +26,24 @@ const theme = createTheme({
       main: PRIMARY,
       dark: PRIMARY_DARK,
       light: PRIMARY_LIGHT,
-      contrastText: "#FFFFFF",
+      contrastText: DARK_TEXT,
     },
     secondary: {
-      main: NAVY,
-      dark: FOOTER,
-      light: "#F3F7FC",
+      main: ORANGE,
+      dark: ORANGE_DARK,
+      light: "#FFEFE0",
       contrastText: "#FFFFFF",
     },
     error: { main: DANGER, light: "#FECACA", contrastText: "#FFFFFF" },
-    warning: { main: WARNING, light: "#FDE68A", contrastText: DARK_TEXT },
-    info: { main: NAVY, light: "#BFDBFE", contrastText: "#FFFFFF" },
-    success: { main: SUCCESS, light: LIGHT_GREEN, contrastText: "#FFFFFF" },
+    warning: { main: WARNING, light: "#FDE9A8", contrastText: DARK_TEXT },
+    info: { main: "#1A8FA8", light: "#C5EBF3", contrastText: "#FFFFFF" },
+    success: { main: SUCCESS, light: LIGHT_YELLOW, contrastText: "#FFFFFF" },
     background: { default: BACKGROUND, paper: PAPER },
     text: { primary: DARK_TEXT, secondary: SECONDARY_TEXT },
     divider: BORDER,
     action: {
-      hover: "rgba(47,125,90,0.06)",
-      selected: "rgba(47,125,90,0.10)",
+      hover: "rgba(232,168,23,0.10)",
+      selected: "rgba(232,168,23,0.16)",
     },
   },
 
@@ -74,8 +75,9 @@ const theme = createTheme({
           "&:hover": { transform: "scale(1.02)" },
         },
         containedPrimary: {
-          backgroundColor: PRIMARY_DARK,
-          "&:hover": { backgroundColor: PRIMARY },
+          backgroundColor: PRIMARY,
+          color: DARK_TEXT,
+          "&:hover": { backgroundColor: PRIMARY_LIGHT, color: DARK_TEXT },
         },
         outlinedPrimary: {
           borderColor: PRIMARY,
@@ -83,8 +85,12 @@ const theme = createTheme({
           backgroundColor: PAPER,
           "&:hover": {
             borderColor: PRIMARY_DARK,
-            backgroundColor: LIGHT_GREEN,
+            backgroundColor: LIGHT_YELLOW,
           },
+        },
+        containedSecondary: {
+          backgroundColor: ORANGE_DARK,
+          "&:hover": { backgroundColor: ORANGE },
         },
       },
     },
@@ -94,11 +100,11 @@ const theme = createTheme({
         root: {
           borderRadius: 18,
           borderColor: BORDER,
-          boxShadow: "0 8px 30px rgba(15,23,42,.06)",
+          boxShadow: "0 8px 30px rgba(138,88,8,.06)",
           transition: "transform .3s ease, box-shadow .3s ease, border-color .3s ease",
           "&:hover": {
             transform: "translateY(-4px)",
-            boxShadow: "0 12px 36px rgba(15,23,42,.1)",
+            boxShadow: "0 12px 36px rgba(226,90,12,.12)",
           },
         },
       },
