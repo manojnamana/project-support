@@ -154,7 +154,7 @@ export default function Home() {
           position: "relative",
           pt: { xs: 5, md: 8 },
           pb: { xs: 6, md: 10 },
-          background: "linear-gradient(180deg, #FFFFFF 0%, #F8F6EE 55%, #FFF6D6 100%)",
+          background: "linear-gradient(180deg, #FFFFFF 0%, #F8F6EE 55%, #EAF5EF 100%)",
         }}
       >
         <Container maxWidth="lg">
@@ -257,7 +257,7 @@ export default function Home() {
                       color: "common.white",
                       // borderRadius: 3,
                       bgcolor: "primary.main",
-                      boxShadow: "0 8px 24px rgba(232,168,23,.35)",
+                      boxShadow: "0 8px 24px rgba(47,138,62,.28)",
                       "&:hover": { bgcolor: "primary.dark", color: "common.white" },
                     }}
                   >

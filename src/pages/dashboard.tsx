@@ -318,7 +318,7 @@ export default function DashboardPage() {
               startIcon={<LogoutRoundedIcon />}
               onClick={handleLogout}
               sx={{
-                color: "primary.contrastText",
+                color: "primary.main",
              
               }}
             >
