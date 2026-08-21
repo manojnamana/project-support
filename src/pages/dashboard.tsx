@@ -1,12 +1,18 @@
 import * as React from "react";
 import {
   Alert,
+  AlertColor,
   Box,
   Button,
   Card,
   Chip,
   CircularProgress,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Divider,
   Drawer,
   Grid,
@@ -30,6 +36,7 @@ import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 
 import PageHeader from "@/components/PageHeader";
 import Reveal from "@/components/Reveal";
@@ -58,6 +65,8 @@ import type {
   StaffUser,
 } from "@/types/types";
 import { useRouter } from "next/router";
+import { DeleteCase } from "@/services/deleteapi";
+import AppSnackbar from "@/utils/AppSnackbar";
 
 function formatConcernType(entry: CaseTypeEntry): string {
   if (typeof entry === "string") return entry;
@@ -108,6 +117,17 @@ export default function DashboardPage() {
   const [updatingStatus, setUpdatingStatus] = React.useState(false);
   const [updateError, setUpdateError] = React.useState("");
   const [updateSuccess, setUpdateSuccess] = React.useState("");
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
+  const [pinDialogOpen, setPinDialogOpen] = React.useState(false);
+  const [caseToDelete, setCaseToDelete] = React.useState<DashboardCase | null>(null);
+  const [deletePin, setDeletePin] = React.useState("");
+  const [deleting, setDeleting] = React.useState(false);
+  const [pinError, setPinError] = React.useState("");
+  const [snackbar, setSnackbar] = React.useState<{
+    open: boolean;
+    message: string;
+    severity: AlertColor;
+  }>({ open: false, message: "", severity: "success" });
 
   React.useEffect(() => {
     setUser(getStaffUser());
@@ -279,6 +299,63 @@ export default function DashboardPage() {
       setUpdateError("Unable to update case status. Please try again.");
     } finally {
       setUpdatingStatus(false);
+    }
+  };
+
+  const closeSnackbar = () => setSnackbar((s) => ({ ...s, open: false }));
+
+  const resetDeleteFlow = () => {
+    setConfirmDeleteOpen(false);
+    setPinDialogOpen(false);
+    setCaseToDelete(null);
+    setDeletePin("");
+    setPinError("");
+    setDeleting(false);
+  };
+
+  const handleDeleteCase = async () => {
+    if (!caseToDelete) return;
+    if (!deletePin.trim()) {
+      setPinError("Enter the case PIN to delete this report.");
+      return;
+    }
+
+    setDeleting(true);
+    setPinError("");
+
+    try {
+      const response = await DeleteCase(caseToDelete.id.toString(), deletePin.trim());
+      const axiosRes = response as {
+        status?: number;
+        data?: { success?: boolean; message?: string };
+        response?: { data?: { message?: string; detail?: string }; status?: number };
+      };
+
+      if (axiosRes.status === 200 || axiosRes.status === 201 || axiosRes.status === 204) {
+        const message =
+          axiosRes.data?.message || "Case deleted successfully.";
+        setSnackbar({ open: true, message, severity: "success" });
+        if (selected?.id === caseToDelete.id) setSelected(null);
+        resetDeleteFlow();
+        setRefreshKey((k) => k + 1);
+      } else if (axiosRes.response?.status === 401) {
+        clearAuthSession();
+        void router.replace("/login");
+      } else {
+        const message =
+          axiosRes.response?.data?.message ||
+          axiosRes.response?.data?.detail ||
+          axiosRes.data?.message ||
+          "Unable to delete case.";
+        setSnackbar({ open: true, message, severity: "error" });
+        setPinError(message);
+      }
+    } catch {
+      const message = "Unable to delete case. Please try again.";
+      setSnackbar({ open: true, message, severity: "error" });
+      setPinError(message);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -679,7 +756,7 @@ export default function DashboardPage() {
                 <Button
                   variant="contained"
                   fullWidth
-                  disabled={updatingStatus}
+                  disabled={updatingStatus || deleting}
                   onClick={() => void handleUpdateCaseStatus()}
                   startIcon={
                     updatingStatus ? (
@@ -689,14 +766,118 @@ export default function DashboardPage() {
                 >
                   {updatingStatus ? "Updating…" : "Update status"}
                 </Button>
-                {/* <Button variant="outlined" fullWidth disabled>
-                  Assign
-                </Button> */}
               </Stack>
+              <Button
+                variant="outlined"
+                color="error"
+                fullWidth
+                disabled={updatingStatus || deleting}
+                startIcon={<DeleteOutlineRoundedIcon />}
+                onClick={() => {
+                  if (!selected) return;
+                  setCaseToDelete(selected);
+                  setPinError("");
+                  setDeletePin("");
+                  setConfirmDeleteOpen(true);
+                }}
+              >
+                Delete case
+              </Button>
             </Stack>
           </Box>
         )}
       </Drawer>
+
+      <Dialog
+        open={confirmDeleteOpen}
+        onClose={() => {
+          if (!deleting) setConfirmDeleteOpen(false);
+        }}
+      >
+        <DialogTitle>Delete this case?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete case{" "}
+            <strong>{caseToDelete?.case_number}</strong>? This cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setConfirmDeleteOpen(false)} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              setConfirmDeleteOpen(false);
+              setDeletePin("");
+              setPinError("");
+              setPinDialogOpen(true);
+            }}
+          >
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={pinDialogOpen}
+        onClose={() => {
+          if (!deleting) resetDeleteFlow();
+        }}
+      >
+        <DialogTitle>Enter case PIN</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            Enter the PIN for case <strong>{caseToDelete?.case_number}</strong> to
+            confirm deletion.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            fullWidth
+            required
+            label="Case PIN"
+            type="password"
+            value={deletePin}
+            onChange={(e) => {
+              setDeletePin(e.target.value);
+              if (pinError) setPinError("");
+            }}
+            error={!!pinError}
+            helperText={pinError}
+            disabled={deleting}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void handleDeleteCase();
+              }
+            }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={resetDeleteFlow} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            disabled={deleting || !deletePin.trim()}
+            onClick={() => void handleDeleteCase()}
+            startIcon={
+              deleting ? <CircularProgress size={16} color="inherit" /> : undefined
+            }
+          >
+            {deleting ? "Deleting…" : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <AppSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={closeSnackbar}
+      />
     </Box>
   );
 }
