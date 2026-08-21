@@ -436,7 +436,7 @@ export default function ResourcesPage() {
                       sx={{ px: 2.5, py: 2, borderTop: "1px solid", borderColor: "divider" }}
                     >
                       <Typography variant="body2" color="text.secondary">
-                        Showing {rangeStart}–{rangeEnd} of {filtered.length}
+                        Showing {rangeStart}-{rangeEnd} of {filtered.length}
                       </Typography>
                       <Pagination
                         color="primary"
@@ -468,7 +468,7 @@ export default function ResourcesPage() {
                       See something that needs attention?
                     </Typography>
                     <Typography sx={{ mt: 1, color: "primary.contrastText", opacity: 0.9 }}>
-                      Use these resources to strengthen prevention — and report concerns early
+                      Use these resources to strengthen prevention - and report concerns early
                       through Project SUPPORT.
                     </Typography>
                   </Grid>

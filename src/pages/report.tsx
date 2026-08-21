@@ -555,7 +555,7 @@ export default function ReportPage() {
                 <Box>
                   <StepHeading
                     title="Select your school or location"
-                    caption="Start typing to search. Only 4 options show at once — scroll to see more."
+                    caption="Start typing to search. Only 4 options show at once - scroll to see more."
                   />
                   <ScrollableAutocomplete
                     label="School or program location"
@@ -901,7 +901,7 @@ export default function ReportPage() {
                 <Box>
                   <StepHeading
                     title="Contact information (optional)"
-                    caption="Leave your details if you'd like follow-up — or stay anonymous."
+                    caption="Leave your details if you'd like follow-up - or stay anonymous."
                   />
                   <FormControlLabel
                     control={

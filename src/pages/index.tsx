@@ -191,7 +191,7 @@ export default function Home() {
                   sx={{ maxWidth: 480, fontSize: "1.05rem", mb: 3 }}
                 >
                   A safe, confidential way for students, families, staff, and community
-                  members to report bullying, threats, or other concerns — completely
+                  members to report bullying, threats, or other concerns - completely
                   anonymously.
                 </Typography>
               </Reveal>
