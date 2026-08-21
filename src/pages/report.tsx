@@ -524,7 +524,7 @@ export default function ReportPage() {
       <PageHeader
         eyebrow="Anonymous Reporting Portal"
         title="Report a Safety Concern"
-        subtitle="No login required. Share only what you're comfortable with — you can stay completely anonymous."
+        subtitle="No login required. Share only what you're comfortable with - you can stay completely anonymous."
       />
 
       <Container maxWidth="md" sx={{ mt: { xs: -4, md: -5 }, position: "relative" }}>
