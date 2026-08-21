@@ -8,30 +8,114 @@ import {
   Chip,
   Container,
   Grid,
+  InputAdornment,
   Link as MuiLink,
+  Pagination,
   Stack,
+  TextField,
   Typography,
 } from "@mui/material";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import MenuBookRoundedIcon from "@mui/icons-material/MenuBookRounded";
 import PlayCircleOutlineRoundedIcon from "@mui/icons-material/PlayCircleOutlineRounded";
+import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
+import LanguageRoundedIcon from "@mui/icons-material/LanguageRounded";
+import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 
 import PageHeader from "@/components/PageHeader";
 import Reveal from "@/components/Reveal";
-import { FEATURED_RESOURCES, LATEST_RESOURCES } from "@/data/resources";
+import {
+  COMMUNITY_RESOURCES,
+  FEATURED_RESOURCES,
+  LATEST_RESOURCES,
+  RESOURCE_TYPES,
+  type CommunityResource,
+  type ResourceKind,
+} from "@/data/resources";
+
+function typeIcon(kind: ResourceKind) {
+  switch (kind) {
+    case "Webinar / Video":
+      return <PlayCircleOutlineRoundedIcon sx={{ fontSize: 18 }} />;
+    case "Website":
+      return <LanguageRoundedIcon sx={{ fontSize: 18 }} />;
+    case "Online Tool / Dashboard":
+      return <DashboardOutlinedIcon sx={{ fontSize: 18 }} />;
+    case "Academic Article / Report":
+      return <ArticleOutlinedIcon sx={{ fontSize: 18 }} />;
+    case "Toolkit / White Paper":
+      return <MenuBookRoundedIcon sx={{ fontSize: 18 }} />;
+    default:
+      return <DescriptionOutlinedIcon sx={{ fontSize: 18 }} />;
+  }
+}
+
+function yearSortValue(year: string) {
+  if (year === "Live") return 9999;
+  const n = Number(year);
+  return Number.isFinite(n) ? n : 0;
+}
+
+const PAGE_SIZE = 10;
+
+const RESOURCE_YEARS = Array.from(new Set(COMMUNITY_RESOURCES.map((r) => r.year))).sort(
+  (a, b) => yearSortValue(b) - yearSortValue(a)
+);
+
+function matchesQuery(resource: CommunityResource, query: string) {
+  if (!query) return true;
+  const haystack = [
+    resource.title,
+    resource.organization,
+    resource.type,
+    resource.year,
+    ...resource.topics,
+  ]
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(query);
+}
 
 export default function ResourcesPage() {
+  const [query, setQuery] = React.useState("");
+  const [typeFilter, setTypeFilter] = React.useState<ResourceKind | "All">("All");
+  const [yearFilter, setYearFilter] = React.useState<string>("All");
+  const [page, setPage] = React.useState(1);
+
+  const normalizedQuery = query.trim().toLowerCase();
+
+  const filtered = React.useMemo(
+    () =>
+      COMMUNITY_RESOURCES.filter((resource) => {
+        if (typeFilter !== "All" && resource.type !== typeFilter) return false;
+        if (yearFilter !== "All" && resource.year !== yearFilter) return false;
+        return matchesQuery(resource, normalizedQuery);
+      }),
+    [normalizedQuery, typeFilter, yearFilter]
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paged = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const rangeStart = filtered.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(currentPage * PAGE_SIZE, filtered.length);
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [normalizedQuery, typeFilter, yearFilter]);
+
   return (
     <Box sx={{ pb: 2 }}>
       <PageHeader
         eyebrow="Guides & research"
         title="Resources"
-        subtitle="Evidence-based guides, briefs, and videos to support safer schools, positive behavior systems, and student wellness."
+        subtitle="Evidence-based guides, briefs, and videos to support safer schools, positive behavior systems, and student wellness — plus community safety literature from the CICS resource library."
       />
 
       <Container maxWidth="lg" sx={{ mt: 6 }}>
-        {/* Featured */}
         <Reveal>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
             <MenuBookRoundedIcon color="primary" />
@@ -143,7 +227,6 @@ export default function ResourcesPage() {
           ))}
         </Grid>
 
-        {/* Latest */}
         <Box sx={{ mt: 8 }}>
           <Reveal>
             <Typography variant="h5" sx={{ mb: 0.5 }}>
@@ -214,7 +297,162 @@ export default function ResourcesPage() {
           </Reveal>
         </Box>
 
-        {/* CTA */}
+        <Box sx={{ mt: 8 }}>
+          <Reveal>
+            <Typography variant="h5" sx={{ mb: 0.5 }}>
+              Resource library
+            </Typography>
+  
+          </Reveal>
+
+          <Reveal>
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Search by title, organization, or topic"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchRoundedIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ mb: 2 }}
+            />
+            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 1.5 }}>
+              <Chip
+                label="All types"
+                clickable
+                color={typeFilter === "All" ? "primary" : "default"}
+                variant={typeFilter === "All" ? "filled" : "outlined"}
+                onClick={() => setTypeFilter("All")}
+              />
+              {RESOURCE_TYPES.map((type) => (
+                <Chip
+                  key={type}
+                  label={type}
+                  clickable
+                  color={typeFilter === type ? "primary" : "default"}
+                  variant={typeFilter === type ? "filled" : "outlined"}
+                  onClick={() => setTypeFilter(type)}
+                />
+              ))}
+            </Stack>
+            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 3 }}>
+              <Chip
+                label="All years"
+                clickable
+                color={yearFilter === "All" ? "secondary" : "default"}
+                variant={yearFilter === "All" ? "filled" : "outlined"}
+                onClick={() => setYearFilter("All")}
+              />
+              {RESOURCE_YEARS.map((year) => (
+                <Chip
+                  key={year}
+                  label={year}
+                  clickable
+                  color={yearFilter === year ? "secondary" : "default"}
+                  variant={yearFilter === year ? "filled" : "outlined"}
+                  onClick={() => setYearFilter(year)}
+                />
+              ))}
+            </Stack>
+          </Reveal>
+
+          <Reveal>
+            <Card>
+              <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
+                {filtered.length === 0 ? (
+                  <Typography sx={{ px: 3, py: 4 }} color="text.secondary">
+                    No resources match those filters. Try a different search or clear a chip.
+                  </Typography>
+                ) : (
+                  <>
+                    <Stack divider={<Box sx={{ borderBottom: "1px solid", borderColor: "divider" }} />}>
+                      {paged.map((item) => (
+                        <MuiLink
+                          key={item.id}
+                          href={item.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          underline="none"
+                          sx={{
+                            display: "block",
+                            px: { xs: 2, md: 3 },
+                            py: 2.25,
+                            transition: "background-color .2s ease",
+                            "&:hover": { bgcolor: "action.hover" },
+                          }}
+                        >
+                          <Stack
+                            direction={{ xs: "column", sm: "row" }}
+                            spacing={{ xs: 0.75, sm: 2 }}
+                            alignItems={{ xs: "flex-start", sm: "center" }}
+                          >
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                minWidth: 56,
+                                fontWeight: 700,
+                                letterSpacing: "0.04em",
+                                color: "primary.dark",
+                              }}
+                            >
+                              {item.year}
+                            </Typography>
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <Typography sx={{ fontWeight: 600, color: "text.primary" }}>
+                                {item.title}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
+                                {item.organization}
+                              </Typography>
+                              <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ mt: 0.75 }}>
+                                <Chip size="small" icon={typeIcon(item.type)} label={item.type} />
+                                {item.topics.map((topic) => (
+                                  <Chip key={topic} size="small" label={topic} variant="outlined" />
+                                ))}
+                              </Stack>
+                            </Box>
+                            <OpenInNewRoundedIcon
+                              sx={{
+                                fontSize: 18,
+                                color: "text.secondary",
+                                display: { xs: "none", sm: "block" },
+                                flexShrink: 0,
+                              }}
+                            />
+                          </Stack>
+                        </MuiLink>
+                      ))}
+                    </Stack>
+                    <Stack
+                      direction={{ xs: "column", sm: "row" }}
+                      justifyContent="space-between"
+                      alignItems="center"
+                      spacing={1.5}
+                      sx={{ px: 2.5, py: 2, borderTop: "1px solid", borderColor: "divider" }}
+                    >
+                      <Typography variant="body2" color="text.secondary">
+                        Showing {rangeStart}–{rangeEnd} of {filtered.length}
+                      </Typography>
+                      <Pagination
+                        color="primary"
+                        page={currentPage}
+                        count={totalPages}
+                        disabled={totalPages <= 1}
+                        onChange={(_, nextPage) => setPage(nextPage)}
+                      />
+                    </Stack>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </Reveal>
+        </Box>
+
         <Box sx={{ mt: 8 }}>
           <Reveal>
             <Card
