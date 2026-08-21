@@ -112,7 +112,7 @@ export default function ResourcesPage() {
       <PageHeader
         eyebrow="Guides & research"
         title="Resources"
-        subtitle="Evidence-based guides, briefs, and videos to support safer schools, positive behavior systems, and student wellness — plus community safety literature from the CICS resource library."
+        subtitle="Evidence-based guides, briefs, and videos to support safer schools, positive behavior systems, and student wellness - plus community safety literature from the CICS resource library."
       />
 
       <Container maxWidth="lg" sx={{ mt: 6 }}>

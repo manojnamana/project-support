@@ -2,12 +2,18 @@ import * as React from "react";
 import { useRouter } from "next/router";
 import {
   Alert,
+  AlertColor,
   Box,
   Button,
   Card,
   Chip,
   CircularProgress,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Divider,
   Fade,
   Grid,
@@ -21,6 +27,7 @@ import {
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import LockOpenRoundedIcon from "@mui/icons-material/LockOpenRounded";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 
 import PageHeader from "@/components/PageHeader";
 import Reveal from "@/components/Reveal";
@@ -36,6 +43,8 @@ import {
   type CaseTypeEntry,
 } from "@/types/types";
 import { GetCaseStatus } from "@/services/getapis";
+import { DeletePublicCase } from "@/services/deleteapi";
+import AppSnackbar from "@/utils/AppSnackbar";
 
 function formatCaseType(entry: CaseTypeEntry): string {
   if (typeof entry === "string") return entry;
@@ -44,6 +53,7 @@ function formatCaseType(entry: CaseTypeEntry): string {
 
 function mapCaseStatus(data: CaseStatusData) {
   return {
+    id: data.id,
     caseNumber: data.case_number,
     school: data.school,
     types: (data.types ?? []).map(formatCaseType),
@@ -69,6 +79,13 @@ export default function StatusPage() {
   const [loading, setLoading] = React.useState(false);
   const [thread, setThread] = React.useState<CaseMessage[]>([]);
   const [reply, setReply] = React.useState("");
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
+  const [deleting, setDeleting] = React.useState(false);
+  const [snackbar, setSnackbar] = React.useState<{
+    open: boolean;
+    message: string;
+    severity: AlertColor;
+  }>({ open: false, message: "", severity: "success" });
 
   React.useEffect(() => {
     if (router.isReady && router.query.case) {
@@ -118,6 +135,48 @@ export default function StatusPage() {
     }
   };
 
+  const closeSnackbar = () => setSnackbar((s) => ({ ...s, open: false }));
+
+  const handleDeleteCase = async () => {
+    if (!report || !pin.trim()) return;
+
+    setDeleting(true);
+
+    try {
+      const response = await DeletePublicCase(report.id.toString(), pin.trim());
+      const axiosRes = response as {
+        status?: number;
+        data?: { success?: boolean; message?: string };
+        response?: { data?: { message?: string; detail?: string }; status?: number };
+      };
+
+      if (axiosRes.status === 200 || axiosRes.status === 201 || axiosRes.status === 204) {
+        const message =
+          axiosRes.data?.message || "Case deleted successfully.";
+        setSnackbar({ open: true, message, severity: "success" });
+        setConfirmDeleteOpen(false);
+        setReport(null);
+        setThread([]);
+        setPin("");
+      } else {
+        const message =
+          axiosRes.response?.data?.message ||
+          axiosRes.response?.data?.detail ||
+          axiosRes.data?.message ||
+          "Unable to delete case.";
+        setSnackbar({ open: true, message, severity: "error" });
+      }
+    } catch {
+      setSnackbar({
+        open: true,
+        message: "Unable to delete case. Please try again.",
+        severity: "error",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const sendReply = () => {
     if (!reply.trim()) return;
     setThread((t) => [
@@ -139,7 +198,7 @@ export default function StatusPage() {
       <PageHeader
         eyebrow="Anonymous Follow-Up"
         title="Check your report status"
-        subtitle="Enter your case number and PIN to view progress and respond to investigators — without revealing who you are."
+        subtitle="Enter your case number and PIN to view progress and respond to investigators - without revealing who you are."
       />
 
       <Container maxWidth="md" sx={{ mt: { xs: -4, md: -5 }, position: "relative" }}>
@@ -239,6 +298,16 @@ export default function StatusPage() {
                   <Stack spacing={1} alignItems={{ xs: "flex-start", sm: "flex-end" }}>
                     <StatusChip status={report.status} audience="public" />
                     <SeverityChip severity={report.severity} />
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      disabled={deleting}
+                      startIcon={<DeleteOutlineRoundedIcon />}
+                      onClick={() => setConfirmDeleteOpen(true)}
+                    >
+                      Delete case
+                    </Button>
                   </Stack>
                 </Stack>
 
@@ -376,6 +445,44 @@ export default function StatusPage() {
           </Fade>
         )}
       </Container>
+
+      <Dialog
+        open={confirmDeleteOpen}
+        onClose={() => {
+          if (!deleting) setConfirmDeleteOpen(false);
+        }}
+      >
+        <DialogTitle>Delete this case?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete case{" "}
+            <strong>{report?.caseNumber}</strong>? This cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setConfirmDeleteOpen(false)} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            disabled={deleting}
+            onClick={() => void handleDeleteCase()}
+            startIcon={
+              deleting ? <CircularProgress size={16} color="inherit" /> : undefined
+            }
+          >
+            {deleting ? "Deleting…" : "OK"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <AppSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={closeSnackbar}
+      />
     </Box>
   );
 }
