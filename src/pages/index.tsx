@@ -36,11 +36,10 @@ import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import ApartmentOutlinedIcon from "@mui/icons-material/ApartmentOutlined";
 import HandshakeOutlinedIcon from "@mui/icons-material/HandshakeOutlined";
-import CheckBoxOutlineBlankRoundedIcon from "@mui/icons-material/CheckBoxOutlineBlankRounded";
-import CheckBoxRoundedIcon from "@mui/icons-material/CheckBoxRounded";
+import { useRouter } from "next/router";
 
 import Reveal from "@/components/Reveal";
-import { VolunteerActivismOutlined } from "@mui/icons-material";
+import { AddOutlined, SportsKabaddiOutlined, VolunteerActivismOutlined } from "@mui/icons-material";
 
 const TRUST_BADGES = [
   {
@@ -98,11 +97,14 @@ const WHO_CAN_REPORT = [
 
 const REPORT_CATEGORIES = [
   { icon: <GroupsOutlinedIcon />, label: "Bullying", featured: true },
-  { icon: <ReportProblemOutlinedIcon />, label: "Threats" },
+  { icon: <ReportProblemOutlinedIcon />, label: "Violence" },
   { icon: <GavelOutlinedIcon />, label: "Harassment" },
-  { icon: <CrisisAlertOutlinedIcon />, label: "Weapons" },
-  { icon: <LanguageOutlinedIcon />, label: "Online Threats" },
+  { icon: <CrisisAlertOutlinedIcon />, label: "Gang Involvement" },
+  { icon: <LanguageOutlinedIcon />, label: "Cyber Threats" },
+  { icon: <SportsKabaddiOutlined />, label: "Violent Threats" },
   { icon: <FavoriteBorderRoundedIcon />, label: "Self-Harm" },
+  { icon: <AddOutlined />, label: "Other concerns" },
+
 ];
 
 const PRIVACY_CHECKS = [
@@ -146,6 +148,7 @@ const cardHover = {
 };
 
 export default function Home() {
+  const router = useRouter();
   return (
     <Box sx={{ bgcolor: "background.default", overflow: "hidden" }}>
       {/* ── Hero ─────────────────────────────────────────────── */}
@@ -475,7 +478,7 @@ export default function Home() {
             {/* Who can report */}
             <Grid size={{ xs: 12, md: 4 }}>
               <Reveal>
-                <Card sx={{ height: "100%", p: { xs: 2.5, md: 3 }, minHeight: {md:425,xs:"auto"}, bgcolor: "secondary.light","&:hover": { borderColor: "secondary.main" }, }}>
+                <Card sx={{ height: "100%", p: { xs: 2.5, md: 3 }, minHeight: {md:470,xs:"auto"}, bgcolor: "secondary.light","&:hover": { borderColor: "secondary.main" }, }}>
                   <Typography
                     variant="h6"
                     sx={{ color: "secondary.main", mb: 2.5, fontWeight: 700 }}
@@ -517,9 +520,10 @@ export default function Home() {
                     What can you report?
                   </Typography>
                   <Grid container spacing={1.25}>
-                    {REPORT_CATEGORIES.map((cat) => (
+                    {REPORT_CATEGORIES.map((cat) => ( 
                       <Grid key={cat.label} size={{ xs: 6 }}>
                         <Box
+                        onClick={() => router.push(`/report`)}
                           sx={{
                             p: 1.5,
                             borderRadius: 1,
@@ -531,8 +535,9 @@ export default function Home() {
                             alignItems: "center",
                             gap: 0.75,
                             minHeight: 48,
+                            cursor: "pointer",
                             transition: "all .25s ease",
-                            cursor: "default",
+                            
                             "&:hover": {
                               borderColor: "primary.main",
                               bgcolor: "success.light",
@@ -550,28 +555,7 @@ export default function Home() {
                         </Box>
                       </Grid>
                     ))}
-                    <Grid size={{ xs: 12 }}>
-                      <Box
-                        sx={{
-                          p: 1.5,
-                          borderRadius: 1,
-                          border: "1.5px dashed",
-                          borderColor: "divider",
-                          bgcolor: "background.paper",
-                          textAlign: "center",
-                          transition: "all .25s ease",
-                          "&:hover": {
-                            borderColor: "primary.main",
-                            bgcolor: "success.light",
-                            color: "primary.dark",
-                          },
-                        }}
-                      >
-                        <Typography sx={{ fontWeight: 600, fontSize: "0.85rem", color: "text.secondary" }}>
-                          + Other Concerns
-                        </Typography>
-                      </Box>
-                    </Grid>
+                   
                   </Grid>
                 </Card>
               </Reveal>
@@ -587,7 +571,7 @@ export default function Home() {
                     bgcolor: "secondary.light",
                     borderColor: "divider",
                     color: "secondary.main",
-                    minHeight: {md:425,xs:"auto"},
+                    minHeight: {md:470,xs:"auto"},
                     ...cardHover,
                     "&:hover": {
                       transform: "translateY(-4px)",
